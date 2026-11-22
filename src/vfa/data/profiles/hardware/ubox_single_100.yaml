@@ -1,6 +1,6 @@
 # Spintend Single Ubox 100V 100A (Board B).
 # Assumes the controller runs the UBOX_SINGLE_100 firmware target. Confirm with
-# 'fwinfo' (HW name) before trusting the limits below: the same core file also
+# 'hw_status' (HW name) before trusting the limits below: the same core file also
 # builds UBOX_SINGLE_80 and UBOX_SINGLE_85_200 with different limits.
 id: ubox_single_100
 name: Spintend Single Ubox 100V 100A

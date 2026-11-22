@@ -120,7 +120,7 @@ configured 1600 Hz silently runs at 1000 Hz.
 These are firmware setting limits (what VESC Tool accepts), not vendor ratings.
 The same core file also builds `UBOX_SINGLE_80` (±150 A, abs 210 A, 85 V) and
 `UBOX_SINGLE_85_200` (±300 A, abs 420 A, 85 V). **Which target the owner's
-unit runs is UNVERIFIED.** Confirm with `fwinfo` (HW name) before relying on
+unit runs is UNVERIFIED.** Confirm with `hw_status` (HW name) before relying on
 the Ubox limits. The knowledge base's "BMI160 [UNVERIFIED]" is confirmed for
 this target.
 
@@ -257,7 +257,7 @@ Refloat's temperature alerts start 3 °C below `l_temp_fet_start` /
 
 - Vendor ratings for both controllers and the P45B datasheet values. Reading
   them needs network access to the vendor sites, or the owner pasting the pages.
-- Which Ubox firmware target is installed (`fwinfo`).
+- Which Ubox firmware target is installed (`hw_status`).
 - Pint motor detection values (from Board B's `mcconf.xml`).
 - Measured Control Loop Frequency on both boards.
 - Float Control and Floaty log field names and units: these come only from a third-party parser.
