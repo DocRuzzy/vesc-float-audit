@@ -45,7 +45,7 @@ definition file rather than a saved configuration, is rejected.
 | Field | Required | Meaning |
 |---|---|---|
 | `hardware` | yes | hardware profile id: `thor301`, `ubox_single_100` |
-| `firmware` | yes | as shown by `fwinfo`, e.g. `7.00` |
+| `firmware` | yes | as shown by `hw_status`, e.g. `7.00` |
 | `firmware_variant` | no | `stock` (default) or `rflt-xtras-0.5`. Selects the IMU bus data |
 | `package`, `package_version` | yes | `Refloat` and the version shown on the Packages page. A version that is not a release tag is audited as the nearest tag, with a warning |
 | `motor.profile` | yes | motor profile id: `hypercore_mte5_n52`, `hypercore_stock`, `pint_stock` |

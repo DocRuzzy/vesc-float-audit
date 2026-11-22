@@ -329,7 +329,7 @@ Per board:
 | App config (includes IMU) | same | App Cfg → "…" → Save XML; `--getAppConf` |
 | Refloat config | `<CustomConfiguration>` XML carrying the `RefloatConfig` signature | Refloat Cfg → "…" → Save XML; `--getCustomConf` |
 | All three at once | XML | Float Control 3.3+ export [UNVERIFIED on current version] |
-| Versions | text | Terminal `hw_status` (7.00 has no `hw_status`; terminal.c:601); Packages page |
+| Versions | text | Terminal `hw_status` (7.00 has no `fwinfo`; terminal.c:601); Packages page |
 | Fault history | text | Terminal `faults`; `crash_diag` on rflt-xtras |
 | Detection baseline | values | R, L, Ld−Lq, λ, observer gain, hall table as the wizard reported them |
 
