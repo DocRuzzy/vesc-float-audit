@@ -94,8 +94,8 @@
   evidence: Source
   category: versions
   fail: imu.variant != "stock"
-  message: Firmware variant {imu.variant}. The IMU bus differs from stock 7.00 on Thor 301 (hardware SPI); the knowledge base's I2C bus/rate matrix does not apply to it.
-  rationale: lukash/bldc v7.00-rflt-xtras-0.5 moves the Thor 301 LSM6DS3 to hardware SPI.
+  message: Firmware variant {imu.variant}. The IMU bus on {hw.name} differs from stock 7.00 ({imu.bus_kind}, {imu.bus_khz} kHz), so rate limits and filter guidance for the stock bus do not carry over.
+  rationale: lukash/bldc v7.00-rflt-xtras-0.5 moves the Thor 301 LSM6DS3 to hardware SPI and runs the Ubox BMI160 bus at 700 kHz.
   sources: ["https://github.com/lukash/bldc/blob/ddf18711a6b9012d1dea6a9bedec3d68f8d9ca99/hwconf/fungineers/301/hw_Thor301_core.h#L176-L188"]
 
 - id: CFG-001
