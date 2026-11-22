@@ -50,7 +50,7 @@ imu:
       max_rate_hz: {value: null, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/lsm6ds3.c#L379 (no cap on the sampling loop)"}
     rflt-xtras-0.5:
       kind: {value: spi_hw, evidence: Source, source: "https://github.com/lukash/bldc/blob/ddf18711a6b9012d1dea6a9bedec3d68f8d9ca99/hwconf/fungineers/301/hw_Thor301_core.h#L176-L188"}
-      khz: {value: null, evidence: UNVERIFIED, source: "bus clock not read"}
+      khz: {value: 10500, evidence: Source, source: "https://github.com/lukash/bldc/blob/ddf18711a6b9012d1dea6a9bedec3d68f8d9ca99 default HW SPI bus speed 10.5 MHz (commit f823f1e)"}
       max_rate_hz: {value: null, evidence: UNVERIFIED, source: "not read"}
 
 esp32_express: {value: true, evidence: Source, source: "owner's Board A VESC Express config export, 2026-11-22 (BLE name Thor301)"}

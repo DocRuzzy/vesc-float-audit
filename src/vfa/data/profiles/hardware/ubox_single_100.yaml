@@ -43,5 +43,9 @@ imu:
       kind: {value: i2c_bitbang, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/imu.c#L141-L145"}
       khz: {value: 400, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/imu.c#L265"}
       max_rate_hz: {value: 1000, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/bmi160_wrapper.c#L36-L40"}
+    rflt-xtras-0.5:
+      kind: {value: i2c_bitbang, evidence: Source, source: "https://github.com/lukash/bldc/blob/ddf18711a6b9012d1dea6a9bedec3d68f8d9ca99/hwconf/Ubox/100v/hw_ubox_100_core.h#L214-L216"}
+      khz: {value: 700, evidence: Source, source: "https://github.com/lukash/bldc/blob/ddf18711a6b9012d1dea6a9bedec3d68f8d9ca99/hwconf/Ubox/100v/hw_ubox_100_core.h#L216 (commit f838199)"}
+      max_rate_hz: {value: null, evidence: UNVERIFIED, source: "stock 1000 Hz cap removed in the fork (commit f781325); new limit not characterised"}
 
 esp32_express: {value: false, evidence: UNVERIFIED, source: "hwconf defines a permanent NRF UART; no ESP32 found"}

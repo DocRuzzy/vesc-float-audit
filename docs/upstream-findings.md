@@ -254,6 +254,26 @@ not as a pushback. Duty pushback is `tiltback_duty` alone (`main.c:510`).
 Refloat's temperature alerts start 3 °C below `l_temp_fet_start` /
 `l_temp_motor_start` (`motor_data.c:98-99`).
 
+## Later findings (2026-11-22, after the first real exports)
+
+- **Refloat after v1.3.1.** `lukash/refloat` main has one commit after the tag:
+  `cb87738` (2026-11-14), "Increase the maximum value of the Angle P config
+  option to 60" (`settings.xml` kp max 40 → 60). Its `version` file still reads
+  `1.3.1`, and the AppUI shows that file verbatim (`ui.qml.in:8173`), so no
+  source tree produces "1.3.1.1". The owner reports 1.3.1.1 on both boards; the
+  exports match the 1.3.1 parameter set exactly. Unresolved: a screenshot of
+  the Refloat page or the Packages page would show which string the board
+  reports.
+- **rflt-xtras on the Ubox.** The knowledge base says the rflt-xtras IMU
+  improvements do not apply to a BMI160. In v7.00-rflt-xtras-0.5 the Ubox 100V
+  core sets `IMU_BUS_SPEED_HZ 700000` (commit `f838199`), the BMI160 runs at
+  max ODR in polling mode (`5edc7b2`), and the stock 1000 Hz rate cap is
+  removed (`f781325`). On the Thor 301 the fork uses hardware SPI at
+  10.5 MHz by default (`61529af`, `f823f1e`). The temperature-fault option is
+  `2829d90`: "Don't check for temperature faults if cutoff end >= 100".
+- **Pint pole count.** The owner confirms 30 poles; Board B is configured
+  with 14 (the firmware default).
+
 ## What remains open
 
 - Vendor ratings for both controllers and the P45B datasheet values. Reading
