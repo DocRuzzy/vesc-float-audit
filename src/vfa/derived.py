@@ -93,6 +93,8 @@ def build(b: Bundle) -> Namespace:
         ns.set(f"cfg.{prefix}_missing", len(cfg.missing), "derived")
         ns.set(f"cfg.{prefix}_out_of_range", len(cfg.out_of_range), "derived")
         ns.set(f"cfg.{prefix}_bad_values", len(cfg.bad_values), "derived")
+        ns.set(f"cfg.{prefix}_config_version", cfg.config_version, "config")
+    ns.set("meta.export_source", m.get("export_source", "vesc_tool"), "owner-reported", "meta.json")
 
     _versions(ns, m)
     _pack(ns, m)
@@ -100,6 +102,7 @@ def build(b: Bundle) -> Namespace:
     _erpm(ns)
     _thresholds(ns)
     _torque(ns)
+    _speed(ns)
     _imu(ns, b)
     _misc(ns)
     _log_metrics(ns, b)
@@ -210,10 +213,28 @@ def _torque(ns: Namespace):
         # gain * TORQUE_CONSTANT_COMPAT / Kt_actual = 1/k (pid.c:61, motor_data.c:106,194)
         ns.set("torque.amps_per_ref_amp", 1 / k, "Source", "refloat src/pid.c:61, src/motor_data.c:106,194",
                deps=["torque.k"])
+        mp = ns.values.get("motor.poles")
+        if mp:
+            kp_ = mp * flux / (REF_POLES * REF_FLUX_WB)
+            ns.set("torque.k_profile_poles", kp_, "derived",
+                   deps=["motor.poles", "mc.foc_motor_flux_linkage"])
+            # Factor by which Refloat currently over-commands current relative to the
+            # profile's pole count, and the speed over-report factor
+            # (bldc mc_interface.c:1626: rpm = erpm / (poles / 2)).
+            ns.set("torque.pole_error_factor", kp_ / k, "derived",
+                   deps=["torque.k_profile_poles", "torque.k"])
+            ns.set("speed.report_factor", mp / poles, "derived",
+                   deps=["motor.poles", "mc.si_motor_poles"])
     else:
         ns.set("torque.k", None, "Source", "flux linkage or poles missing/zero: Refloat falls back "
                "to the reference motor (motor_data.c:105-109)",
                deps=["mc.si_motor_poles", "mc.foc_motor_flux_linkage"])
+
+
+def _speed(ns: Namespace):
+    f, ts = ns.values.get("speed.report_factor"), ns.values.get("rf.tiltback_speed")
+    if f and ts:
+        ns.set("speed.pushback_true_kmh", ts / f, "derived", deps=["speed.report_factor", "rf.tiltback_speed"])
 
 
 def _imu(ns: Namespace, b: Bundle):

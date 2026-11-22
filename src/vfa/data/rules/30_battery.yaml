@@ -185,3 +185,36 @@
   message: Battery Voltage Regen Cutoff Start is {mc.l_battery_regen_cut_start:.1f} V (full charge {pack.full_v:.1f} V). Braking current is reduced near full charge, when a descent most needs it.
   rationale: On a balance board, regen is braking torque. The firmware default (1000 V) disables this cut.
   sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/motor/mcconf_default.h"]
+- id: BAT-019
+  title: Overvoltage fault raised above the hardware default
+  severity: warning
+  evidence: Analysis
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: mc.l_max_vin > hw.default_overrides.l_max_vin
+  message: >-
+    Maximum Input Voltage (the overvoltage fault) is {mc.l_max_vin:.1f} V, raised above the
+    {hw.name} firmware default of {hw.default_overrides.l_max_vin:.0f} V (the firmware accepts
+    up to {hw.fw_limits.vin_max:.0f} V). The controller's stated maximum operating voltage is
+    {hw.vendor.max_operating_v} V, so regen can push the bus
+    further before the firmware stops it.
+  rationale: >-
+    l_max_vin is the last firmware guard against regen overvoltage, and a charge-only BMS
+    does not interrupt regen. The hardware maintainers' default already sits above the
+    operating rating to tolerate transients; raising it further spends margin nobody has
+    characterised.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L221-L249", docs/knowledge-base.md §2]
+- id: BAT-020
+  title: Full charge at the controller's maximum operating voltage
+  severity: warning
+  evidence: Analysis
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: pack.full_v >= hw.vendor.max_operating_v - 1
+  message: >-
+    A full {pack.s}S pack is {pack.full_v:.1f} V, within 1 V of the controller's
+    {hw.vendor.max_operating_v:.0f} V maximum. Any regen straight off the charger pushes
+    the bus above the rating, and HV pushback cannot sit both above full charge and below
+    the rating.
+  rationale: Knowledge base §2 sets Board A HV tiltback to 84 V because the controller ceiling overrides the per-cell rule; this rule makes the lack of margin explicit. Avoid long descents on a full charge.
+  sources: [docs/knowledge-base.md §2]

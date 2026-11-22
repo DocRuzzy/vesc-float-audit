@@ -31,6 +31,8 @@
   evidence: Source
   category: imu
   crosscheck: imu_bus
+  # Stock LSM6DS3 has no rate cap (lsm6ds3.c:379), so the rule does not apply there.
+  when: not (imu.part == "LSM6DS3" and imu.variant == "stock")
   fail: app.imu_conf.sample_rate_hz > imu.bus_max_rate_hz
   message: IMU sample rate {app.imu_conf.sample_rate_hz} Hz, but the stock firmware caps a {imu.part} on I2C at {imu.bus_max_rate_hz} Hz. The control loop runs at {imu.effective_rate_hz} Hz.
   rationale: bmi160_wrapper_init clamps rate_hz to 1000 for I2C. Refloat's loop follows the IMU callback.

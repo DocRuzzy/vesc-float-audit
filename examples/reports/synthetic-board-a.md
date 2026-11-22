@@ -16,11 +16,11 @@ Generated 2026-11-22 by vesc-float-audit from `examples/synthetic-board-a`.
 ## Summary
 
 - **1 red flag(s)** (critical findings)
-- 3 warning(s), 4 info note(s)
-- 1 rule(s) not evaluated (missing inputs)
-- 22 rule(s) without a finding but resting on unconfirmed inputs
-- 55 rule(s) without a finding on confirmed inputs
-- 20 rule(s) not applicable
+- 4 warning(s), 4 info note(s)
+- 0 rule(s) not evaluated (missing inputs)
+- 23 rule(s) without a finding but resting on unconfirmed inputs
+- 56 rule(s) without a finding on confirmed inputs
+- 22 rule(s) not applicable
 
 ## Red flags
 
@@ -98,6 +98,8 @@ Sources: `docs/knowledge-base.md §2`; [src/conf/settings.xml](https://github.co
 | BAT-011 LV pushback below 3.0 V/cell with a charge-only BMS | warning | no finding (unconfirmed inputs) | unconfirmed: `cell.v_min` |
 | BAT-014 HV pushback below full-charge voltage | warning | no finding (unconfirmed inputs) | unconfirmed: `cell.v_max` |
 | BAT-017 Cutoff end below the controller's recommended minimum voltage | warning | no finding (unconfirmed inputs) | unconfirmed: `hw.vendor.min_recommended_v` |
+| BAT-019 Overvoltage fault raised above the hardware default | warning | no finding (unconfirmed inputs) | unconfirmed: `hw.default_overrides.l_max_vin` |
+| BAT-020 Full charge at the controller's maximum operating voltage | warning | FIRED | A full 20S pack is 84.0 V, within 1 V of the controller's 84 V maximum. Any regen straight off the charger pushes the bus above the rating, and HV pushback cannot sit both above full charge and below the rating. |
 
 ### Duty tiltback vs max duty vs field weakening
 
@@ -146,7 +148,6 @@ Sources: `docs/knowledge-base.md §2`; [src/conf/settings.xml](https://github.co
 | IMU-001 LSM6DS3 at 1200 Hz or more on the 400 kHz bus | critical | no finding |  |
 | ID-009 IMU is not the internal IMU | warning | no finding |  |
 | IMU-002 LSM6DS3 rate between the tested points on the 400 kHz bus | warning | no finding |  |
-| IMU-003 Configured IMU rate above the firmware's cap for this IMU | warning | NOT EVALUATED | missing: `imu.bus_max_rate_hz` |
 | IMU-004 IMU rate below 400 Hz | warning | no finding |  |
 | IMU-008 Switching frequency outside 25-30 kHz | warning | no finding |  |
 | IMU-009 High switching frequency combined with a high IMU rate | warning | no finding |  |
@@ -190,7 +191,18 @@ Torque-scaled Refloat parameters. *1.2-equivalent* is the value a 1.2 tune would
 
 ## Other findings
 
-### Warnings (3)
+### Warnings (4)
+
+#### BAT-020 — Full charge at the controller's maximum operating voltage
+*warning* · rule basis **[Analysis]** · category battery
+
+A full 20S pack is 84.0 V, within 1 V of the controller's 84 V maximum. Any regen straight off the charger pushes the bus above the rating, and HV pushback cannot sit both above full charge and below the rating.
+
+Why: Knowledge base §2 sets Board A HV tiltback to 84 V because the controller ceiling overrides the per-cell rule; this rule makes the lack of margin explicit. Avoid long descents on a full charge.
+
+Rests on unconfirmed inputs: `cell.v_max` [UNVERIFIED], `hw.vendor.max_operating_v` [UNVERIFIED].
+
+Sources: `docs/knowledge-base.md §2`
 
 #### THM-005 — MOSFET temperature limits above the controller's foldback figures
 *warning* · rule basis **[UNVERIFIED]** · category thermal
@@ -263,9 +275,7 @@ Sources: [src/lib/utils.h#L37-L38](https://github.com/lukash/refloat/blob/a2b55d
 
 These rules could not run because an input is missing (no vendor figure, no reference value for this motor, no log, or a parameter absent from the export). Each is an open question, not a pass.
 
-| Rule | Severity | Missing |
-|---|---|---|
-| IMU-003 Configured IMU rate above the firmware's cap for this IMU | warning | `imu.bus_max_rate_hz` |
+None.
 
 ## No finding, but unconfirmed
 
@@ -287,6 +297,7 @@ These rules did not fire, but at least one input is UNVERIFIED or a community/an
 | BAT-014 HV pushback below full-charge voltage | warning | `cell.v_max` [UNVERIFIED] |
 | BAT-017 Cutoff end below the controller's recommended minimum voltage | warning | `hw.vendor.min_recommended_v` [UNVERIFIED] |
 | BAT-018 Regen is cut at high battery voltage | warning | `cell.v_max` [UNVERIFIED] |
+| BAT-019 Overvoltage fault raised above the hardware default | warning | `hw.default_overrides.l_max_vin` [UNVERIFIED] |
 | DUTY-003 Duty pushback above 85% | warning | `duty.margin_point` [Analysis] |
 | DUTY-010 High-sag pack with duty pushback above 80% | warning | `cell.dcr_ohm_max` [UNVERIFIED], `cell.v_max` [UNVERIFIED] |
 | ID-004 Flux linkage outside the motor profile's range | warning | `motor.flux_wb_max` [UNVERIFIED], `motor.flux_wb_min` [Analysis] |
@@ -298,7 +309,7 @@ These rules did not fire, but at least one input is UNVERIFIED or a community/an
 
 ## No finding on confirmed inputs
 
-BAT-006, BAT-008, BAT-009, BAT-013, BAT-015, BAT-016, CUR-001, CUR-004, CUR-008, CUR-009, DUTY-004, DUTY-011, FP-001, FP-004, ID-002, ID-003, ID-008, IMU-001, THM-001, THM-002, THM-003, TUNE-008, VER-001, BAT-007, CFG-001, CFG-002, CFG-003, CUR-002, CUR-006, DUTY-001, FP-002, FP-003, ID-009, IMU-002, IMU-004, IMU-007, IMU-008, IMU-009, IMU-013, THM-004, TUNE-002, TUNE-003, TUNE-004, TUNE-006, VER-003, VER-004, VER-005, DUTY-009, IMU-005, IMU-006, TUNE-005, TUNE-007, TUNE-009, TUNE-010, VER-008
+BAT-006, BAT-008, BAT-009, BAT-013, BAT-015, BAT-016, CUR-001, CUR-004, CUR-008, CUR-009, DUTY-004, DUTY-011, FP-001, FP-004, ID-002, ID-003, ID-008, IMU-001, THM-001, THM-002, THM-003, TUNE-008, VER-001, BAT-007, CFG-001, CFG-002, CFG-003, CFG-004, CUR-002, CUR-006, DUTY-001, FP-002, FP-003, ID-009, IMU-002, IMU-004, IMU-007, IMU-008, IMU-009, IMU-013, THM-004, TUNE-002, TUNE-003, TUNE-004, TUNE-006, VER-003, VER-004, VER-005, DUTY-009, IMU-005, IMU-006, TUNE-005, TUNE-007, TUNE-009, TUNE-010, VER-008
 
 ## Diff against defaults
 

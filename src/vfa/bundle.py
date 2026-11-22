@@ -19,6 +19,7 @@ meta.json fields (see docs/bundle-format.md):
   tune_conversions_from_1_2   int or null (how many times "Convert from 1.2" was applied)
   battery_temp_monitored      bool or null
   measured          {control_loop_hz: number}  (from Refloat realtime data)
+  export_source     "vesc_tool" (default) | "float_control" | free text
 """
 from __future__ import annotations
 

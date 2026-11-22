@@ -6,10 +6,23 @@
   category: identity
   crosscheck: flux_norm
   fail: mc.si_motor_poles != motor.poles
-  message: si_motor_poles is {mc.si_motor_poles}; the {meta.hardware} motor profile expects {motor.poles}.
+  message: >-
+    si_motor_poles is {mc.si_motor_poles}; the {motor.name} profile expects {motor.poles}
+    (14 is the firmware default, so it may never have been set). If the motor has
+    {motor.poles} poles, Refloat underestimates the torque constant and commands
+    {torque.pole_error_factor:.2f}x the phase current it intends for every torque-scaled
+    gain, and speed reads {speed.report_factor:.2f}x the true value. Do not correct the
+    pole count on its own: that alone cuts the board's response to
+    1/{torque.pole_error_factor:.2f} of what the rider is used to. Change it together with
+    kp, kp2, ki, ki_limit, booster currents, torque-tilt start current and both ATR amp
+    ratios multiplied by {torque.pole_error_factor:.2f}, and both torque-tilt strengths
+    divided by it.
   rationale: >-
-    Refloat computes its torque constant from poles x flux linkage, so a wrong pole count
-    rescales every torque-based gain. It also corrupts speed and distance.
+    Refloat computes its torque constant from poles x flux linkage (motor_data.c:106) and
+    converts torque to current with it (motor_data.c:194), so a wrong pole count rescales
+    every torque-based gain. The firmware computes speed as ERPM / (poles / 2), so speed,
+    distance and speed pushback are off by the same ratio. The expected pole count is a
+    profile value; for the Pint it is UNVERIFIED.
   sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L102-L109", docs/knowledge-base.md §1]
 - id: ID-002
   title: Battery cell count in mcconf differs from the pack
@@ -98,3 +111,17 @@
   message: foc_f_zv {mc.foc_f_zv:.0f} Hz is outside the stated {hw.vendor.pwm_min_hz:.0f}-{hw.vendor.pwm_max_hz:.0f} Hz.
   rationale: Vendor PWM range, not re-read from the vendor.
   sources: [docs/knowledge-base.md §2]
+- id: ID-011
+  title: Speed pushback scaled by a pole count that differs from the motor profile
+  severity: warning
+  evidence: Source
+  category: identity
+  when: rf.tiltback_speed > 0
+  fail: mc.si_motor_poles != motor.poles
+  message: >-
+    Speed pushback is set to {rf.tiltback_speed} km/h, but speed is computed with
+    {mc.si_motor_poles} poles. If the motor has {motor.poles}, reported speed is
+    {speed.report_factor:.2f}x true and pushback triggers near
+    {speed.pushback_true_kmh:.1f} km/h actual speed.
+  rationale: Refloat's speed pushback compares mc_get_speed() x 3.6 against tiltback_speed; the firmware derives speed from ERPM, pole count and wheel diameter.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/main.c#L637-L638", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L137", "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/motor/mc_interface.c#L1618-L1630"]

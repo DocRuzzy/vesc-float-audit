@@ -129,7 +129,16 @@ SCENARIOS = [
     ("a", {"meta": {"package_version": "1.3.0"}}, "VER-001"),
     ("a", {"meta": {"tune_conversions_from_1_2": 2}}, "VER-006"),
     ("a", {"meta": {"firmware": "6.06"}}, "VER-005"),
+    ("a", {"meta": {"export_source": "float_control"}}, "CFG-004"),
+    ("a", {"mc": {"l_max_vin": 97.0}}, "BAT-019"),
+    ("a", {}, "BAT-020"),                                              # 20S full = 84 V at the 84 V rating
+    ("b", {"mc": {"si_motor_poles": 14}, "rf": {"tiltback_speed": 25}}, "ID-011"),
 ]
+
+
+def test_vesc_tool_export_has_no_cfg004(tmp_path):
+    _, _, res = audit(tmp_path)
+    assert not res["CFG-004"].fired
 
 
 @pytest.mark.parametrize("board,over,rule", SCENARIOS, ids=[s[2] + "-" + str(i) for i, s in enumerate(SCENARIOS)])
@@ -159,3 +168,15 @@ def test_log_rules(tmp_path):
         assert rid in f, rid
     assert res["LOG-001"].weak_inputs     # Float Control format is UNVERIFIED
     assert ns.values["log.fault_codes"] == (5,)
+
+
+def test_pole_error_messages(tmp_path):
+    _, ns, res = audit(tmp_path, board="b", mc={"si_motor_poles": 14}, rf={"tiltback_speed": 25})
+    assert ns.values["torque.pole_error_factor"] == pytest.approx(30 / 14)
+    assert ns.values["speed.pushback_true_kmh"] == pytest.approx(25 * 14 / 30)
+    assert "2.14x" in res["ID-001"].message and "Do not correct the" in res["ID-001"].message
+
+
+def test_imu003_not_applicable_on_stock_lsm6ds3(tmp_path):
+    _, _, res = audit(tmp_path)
+    assert res["IMU-003"].outcome == "not_applicable"

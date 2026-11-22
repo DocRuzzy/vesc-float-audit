@@ -17,10 +17,10 @@ Generated 2026-11-22 by vesc-float-audit from `examples/synthetic-board-b`.
 
 - **0 red flag(s)** (critical findings)
 - 6 warning(s), 4 info note(s)
-- 9 rule(s) not evaluated (missing inputs)
-- 21 rule(s) without a finding but resting on unconfirmed inputs
-- 54 rule(s) without a finding on confirmed inputs
-- 12 rule(s) not applicable
+- 10 rule(s) not evaluated (missing inputs)
+- 22 rule(s) without a finding but resting on unconfirmed inputs
+- 55 rule(s) without a finding on confirmed inputs
+- 13 rule(s) not applicable
 
 ## Red flags
 
@@ -91,6 +91,8 @@ No critical rule fired. Check the *not evaluated* and *unconfirmed* lists before
 | BAT-011 LV pushback below 3.0 V/cell with a charge-only BMS | warning | no finding (unconfirmed inputs) | unconfirmed: `cell.v_min` |
 | BAT-014 HV pushback below full-charge voltage | warning | no finding (unconfirmed inputs) | unconfirmed: `cell.v_max` |
 | BAT-017 Cutoff end below the controller's recommended minimum voltage | warning | NOT EVALUATED | missing: `hw.vendor.min_recommended_v` |
+| BAT-019 Overvoltage fault raised above the hardware default | warning | no finding (unconfirmed inputs) | unconfirmed: `hw.default_overrides.l_max_vin` |
+| BAT-020 Full charge at the controller's maximum operating voltage | warning | NOT EVALUATED | missing: `hw.vendor.max_operating_v` |
 | LOG-005 Logged voltage reached the cutoff start | warning | no finding (unconfirmed inputs) | unconfirmed: `log.v_min` |
 | LOG-007 Logged voltage above HV pushback | warning | no finding (unconfirmed inputs) | unconfirmed: `log.v_max` |
 
@@ -298,6 +300,7 @@ These rules could not run because an input is missing (no vendor figure, no refe
 | BAT-012 HV pushback above the controller's maximum operating voltage | critical | `hw.vendor.max_operating_v` |
 | CUR-003 Absolute max current above the controller's recommended limit | critical | `hw.vendor.phase_current_recommended` |
 | BAT-017 Cutoff end below the controller's recommended minimum voltage | warning | `hw.vendor.min_recommended_v` |
+| BAT-020 Full charge at the controller's maximum operating voltage | warning | `hw.vendor.max_operating_v` |
 | ID-004 Flux linkage outside the motor profile's range | warning | `motor.flux_wb_max`, `motor.flux_wb_min` |
 | ID-005 Motor resistance outside the motor profile's range | warning | `motor.r_ohm_max`, `motor.r_ohm_min` |
 | ID-006 Motor inductance outside the motor profile's range | warning | `motor.l_h_max`, `motor.l_h_min` |
@@ -324,6 +327,7 @@ These rules did not fire, but at least one input is UNVERIFIED or a community/an
 | BAT-011 LV pushback below 3.0 V/cell with a charge-only BMS | warning | `cell.v_min` [UNVERIFIED] |
 | BAT-014 HV pushback below full-charge voltage | warning | `cell.v_max` [UNVERIFIED] |
 | BAT-018 Regen is cut at high battery voltage | warning | `cell.v_max` [UNVERIFIED] |
+| BAT-019 Overvoltage fault raised above the hardware default | warning | `hw.default_overrides.l_max_vin` [UNVERIFIED] |
 | CUR-005 Absolute max current above the firmware default for this controller | warning | `hw.default_overrides.l_abs_current_max` [UNVERIFIED], `hw.vendor.phase_current_recommended` [UNVERIFIED] |
 | DUTY-003 Duty pushback above 85% | warning | `duty.margin_point` [Analysis] |
 | DUTY-010 High-sag pack with duty pushback above 80% | warning | `cell.dcr_ohm_max` [UNVERIFIED], `cell.v_max` [UNVERIFIED] |
@@ -335,7 +339,7 @@ These rules did not fire, but at least one input is UNVERIFIED or a community/an
 
 ## No finding on confirmed inputs
 
-BAT-006, BAT-008, BAT-009, BAT-013, BAT-015, BAT-016, CUR-001, CUR-004, CUR-008, CUR-009, DUTY-004, DUTY-011, FP-001, FP-004, ID-002, ID-003, ID-008, THM-001, THM-002, THM-003, TUNE-008, VER-001, BAT-007, CFG-001, CFG-002, CFG-003, CUR-002, CUR-006, DUTY-001, FP-002, FP-003, ID-009, IMU-003, IMU-004, IMU-007, IMU-008, IMU-009, IMU-013, THM-004, TUNE-002, TUNE-003, TUNE-004, TUNE-006, VER-003, VER-004, VER-005, DUTY-009, IMU-005, IMU-006, TUNE-005, TUNE-007, TUNE-009, TUNE-010, VER-008
+BAT-006, BAT-008, BAT-009, BAT-013, BAT-015, BAT-016, CUR-001, CUR-004, CUR-008, CUR-009, DUTY-004, DUTY-011, FP-001, FP-004, ID-002, ID-003, ID-008, THM-001, THM-002, THM-003, TUNE-008, VER-001, BAT-007, CFG-001, CFG-002, CFG-003, CFG-004, CUR-002, CUR-006, DUTY-001, FP-002, FP-003, ID-009, IMU-003, IMU-004, IMU-007, IMU-008, IMU-009, IMU-013, THM-004, TUNE-002, TUNE-003, TUNE-004, TUNE-006, VER-003, VER-004, VER-005, DUTY-009, IMU-005, IMU-006, TUNE-005, TUNE-007, TUNE-009, TUNE-010, VER-008
 
 ## Diff against defaults
 

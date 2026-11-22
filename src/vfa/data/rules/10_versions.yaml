@@ -125,3 +125,21 @@
   message: "Out-of-range values: mcconf {cfg.mc_out_of_range}, appconf {cfg.app_out_of_range}, refloat {cfg.rf_out_of_range}; unparseable: {cfg.mc_bad_values}/{cfg.app_bad_values}/{cfg.rf_bad_values}. See the parse notes."
   rationale: The UI editors clamp to min/max; a value outside them was hand-edited or comes from another version.
   sources: [src/vfa/configxml.py]
+- id: CFG-004
+  title: Configs not exported with VESC Tool's Save XML
+  severity: warning
+  evidence: Source
+  category: versions
+  fail: meta.export_source != "vesc_tool" or get(cfg.mc_config_version, 0) != 4 or get(cfg.app_config_version, 0) != 4
+  message: >-
+    Export source "{meta.export_source}", ConfigVersion mcconf {cfg.mc_config_version} /
+    appconf {cfg.app_config_version} (VESC Tool 7.00 writes 4). Parameters this export
+    lacks are reported as not evaluated; values were taken as raw firmware units. Re-run
+    the audit on VESC Tool "Save XML" exports before acting on findings.
+  rationale: >-
+    VESC Tool 7.00 writes ConfigVersion 4 (vesc_tool.pro VT_CONFIG_VERSION). Float Control
+    exports seen so far carry ConfigVersion 2, about 60% of mcconf and a third of appconf,
+    6.05-era mcconf names (foc_d_gain_scale_*, foc_offsets_cal_on_boot) and a pre-1.3 Refloat
+    name (leds.status.duty_threshold), so they are Float Control's own schema rather than a
+    dump of the board's config.
+  sources: ["https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/vesc_tool.pro#L10", "https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/configparams.cpp#L1024-L1060"]

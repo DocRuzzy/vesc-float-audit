@@ -17,9 +17,9 @@ Generated 2026-11-22 by vesc-float-audit.
 | | Example A (synthetic) | Example B (synthetic) |
 |---|---|---|
 | critical fired | 1 | 0 |
-| warning fired | 3 | 6 |
+| warning fired | 4 | 6 |
 | info fired | 4 | 4 |
-| not evaluated | 1 | 9 |
+| not evaluated | 0 | 10 |
 
 Rules that fired on either board:
 
@@ -27,6 +27,7 @@ Rules that fired on either board:
 |---|---|---|---|
 | BAT-012 HV pushback above the controller's maximum operating voltage | critical | FIRED | NOT EVALUATED |
 | BAT-002 Battery current max above the durable figure for this pack | warning | no finding (unconfirmed inputs) | FIRED |
+| BAT-020 Full charge at the controller's maximum operating voltage | warning | FIRED | NOT EVALUATED |
 | LOG-001 Logged duty above the duty pushback threshold | warning | n/a | FIRED |
 | LOG-004 Battery current saturating at its limit | warning | n/a | FIRED |
 | LOG-010 Footpad readings below threshold while riding | warning | n/a | FIRED |

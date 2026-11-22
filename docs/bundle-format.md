@@ -54,6 +54,7 @@ definition file rather than a saved configuration, is rejected.
 | `tune_conversions_from_1_2` | no | how many times "Convert from 1.2" was applied to this tune; `null` if unknown |
 | `battery_temp_monitored` | no | `true` only if something actually reads pack temperature |
 | `measured.control_loop_hz` | no | Control Loop Frequency from Refloat's realtime data |
+| `export_source` | no | `vesc_tool` (default) or `float_control`. Anything but VESC Tool's Save XML raises CFG-004 |
 
 Profiles live in `src/vfa/data/profiles/{hardware,cells,motors}/`. Add one by
 copying an existing file. Give every value an `evidence` label and a `source`.
@@ -67,3 +68,13 @@ copying an existing file. Give every value an `evidence` label and a `source`.
 | Floaty JSON | UNVERIFIED | `logs[]` field names from float-view; `dutyCycle` is a fraction, `timestamp` is in ms; speed units are undocumented |
 
 Floaty CSV is not supported. Export Floaty logs as JSON.
+
+## Float Control config exports
+
+Float Control can export each config as XML. These files load, but they are
+not VESC Tool's format. The files seen so far have ConfigVersion 2, about 131
+of 211 mcconf and 41 of 122 appconf parameters, 6.05-era mcconf names, a
+pre-1.3 Refloat name, no `config_name` signature, and
+`haptic.duty_solid_offset` apparently in percent. Set `export_source` to
+`float_control`; the report then carries CFG-004, and rules that need missing
+parameters are reported as not evaluated. Prefer VESC Tool exports.
