@@ -5,7 +5,7 @@
 id: ubox_single_100
 name: Spintend Single Ubox 100V 100A
 fw_hw_name: {value: UBOX_SINGLE_100, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L29-L30"}
-target_mapping: {value: "product 'Single Ubox 100V 100A' -> target UBOX_SINGLE_100", evidence: UNVERIFIED, source: "Spintend site not reachable; inferred from target names"}
+target_mapping: {value: "product 'Single Ubox 100V 100A' -> target UBOX_SINGLE_100", evidence: Source, source: "owner's Board B hw_status, 2026-11-22: 'Hardware: UBOX_SINGLE_100', firmware 7.0"}
 
 fw_limits:
   current: {value: 135.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L277-L281"}

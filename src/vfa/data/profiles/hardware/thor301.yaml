@@ -53,4 +53,4 @@ imu:
       khz: {value: null, evidence: UNVERIFIED, source: "bus clock not read"}
       max_rate_hz: {value: null, evidence: UNVERIFIED, source: "not read"}
 
-esp32_express: {value: true, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+esp32_express: {value: true, evidence: Source, source: "owner's Board A VESC Express config export, 2026-11-22 (BLE name Thor301)"}
