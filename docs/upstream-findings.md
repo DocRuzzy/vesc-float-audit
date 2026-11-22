@@ -271,6 +271,10 @@ Refloat's temperature alerts start 3 °C below `l_temp_fet_start` /
   removed (`f781325`). On the Thor 301 the fork uses hardware SPI at
   10.5 MHz by default (`61529af`, `f823f1e`). The temperature-fault option is
   `2829d90`: "Don't check for temperature faults if cutoff end >= 100".
+- **Firmware upload resets stored configs.** Flashing rflt-xtras 0.5 over Bluetooth
+  left both boards' motor and app configs at firmware defaults; Refloat's config
+  survived. Matching config signatures did not protect them. See
+  [`firmware-updates.md`](firmware-updates.md).
 - **Pint pole count.** The owner confirms 30 poles; Board B is configured
   with 14 (the firmware default).
 

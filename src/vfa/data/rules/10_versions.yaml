@@ -190,3 +190,35 @@
     acting on any motor-config finding.
   rationale: HW_LIM_VIN bounds what this firmware stores; a value outside it points to a mixed-up export.
   sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L283-L289", "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L249"]
+- id: CFG-008
+  title: Motor config is at firmware defaults (detection values missing)
+  severity: critical
+  evidence: Source
+  category: versions
+  when: has(reset.mc_at_default)
+  fail: reset.mc_at_default == reset.mc_checked
+  message: >-
+    Motor resistance, inductance, flux linkage and observer gain are all exactly the
+    firmware defaults. The motor was never detected on this controller, or its stored
+    motor config was reset (a firmware upload can do this). Do not ride: write a known-good
+    motor config for this board, power-cycle, and read it back.
+  rationale: >-
+    bldc conf_general.c:113-115 notes that stored data can be missing after programming.
+    On 2026-11-22 a rflt-xtras upload over Bluetooth left both boards' motor and app configs
+    at defaults while the Refloat config survived; the boards would not ride and the Thor
+    squealed.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/conf_general.c#L97-L118", "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/motor/mcconf_default.h"]
+- id: CFG-009
+  title: App config IMU setup is at firmware defaults (orientation and calibration missing)
+  severity: critical
+  evidence: Source
+  category: versions
+  when: has(reset.app_at_default)
+  fail: reset.app_at_default == reset.app_checked
+  message: >-
+    IMU rotation, accel/gyro offsets and sample rate ({app.imu_conf.sample_rate_hz} Hz) are all
+    exactly the firmware defaults. The IMU was never set up, or the stored app config was
+    reset (a firmware upload can do this). Refloat would read pitch and roll on the wrong
+    axes. Do not ride: write this board's known-good app config, power-cycle, read it back.
+  rationale: See CFG-008. A board's IMU orientation is never exactly 0/0/0 with zero offsets after calibration.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/conf_general.c#L97-L118", "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/applications/appconf_default.h"]

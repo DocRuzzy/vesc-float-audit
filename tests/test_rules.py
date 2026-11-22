@@ -212,3 +212,17 @@ def test_board_a_mcconf_in_board_b_bundle_is_caught(tmp_path):
     # Board A's mcconf (97 V max, 38 V min) saved into a Ubox bundle.
     _, _, res = audit(tmp_path, board="b", mc={"l_max_vin": 97.0, "l_min_vin": 38.0, "si_battery_cells": 20})
     assert res["CFG-007"].fired and res["ID-002"].fired
+
+
+def test_reset_to_defaults_detected(tmp_path):
+    import builder
+    from vfa import catalog
+    mc_def = {n: catalog.load("mcconf").default(n) for n in ("foc_motor_r", "foc_motor_l", "foc_motor_flux_linkage", "foc_observer_gain")}
+    app_def = {n: catalog.load("appconf").default(n) for n in (
+        "imu_conf.rot_roll", "imu_conf.rot_pitch", "imu_conf.rot_yaw", "imu_conf.sample_rate_hz",
+        "imu_conf.accel_offsets__0", "imu_conf.accel_offsets__1", "imu_conf.accel_offsets__2",
+        "imu_conf.gyro_offsets__0", "imu_conf.gyro_offsets__1", "imu_conf.gyro_offsets__2")}
+    _, _, res = audit(tmp_path, name="reset", mc=mc_def, app=app_def)
+    assert res["CFG-008"].fired and res["CFG-009"].fired
+    _, _, ok = audit(tmp_path, name="ok", app={"imu_conf.rot_yaw": 90.0})
+    assert not ok["CFG-008"].fired and not ok["CFG-009"].fired

@@ -96,6 +96,7 @@ def build(b: Bundle) -> Namespace:
         ns.set(f"cfg.{prefix}_config_version", cfg.config_version, "config")
     ns.set("meta.export_source", m.get("export_source", "vesc_tool"), "owner-reported", "meta.json")
 
+    _reset_signs(ns, b)
     _hw_status(ns, m)
     _versions(ns, m)
     _pack(ns, m)
@@ -108,6 +109,30 @@ def build(b: Bundle) -> Namespace:
     _misc(ns)
     _log_metrics(ns, b)
     return ns
+
+
+# Values that are only at their firmware default on a controller whose stored config
+# was reset (or never set up). bldc motor/mcconf_default.h, applications/appconf_default.h.
+_MC_DETECTION = ("foc_motor_r", "foc_motor_l", "foc_motor_flux_linkage", "foc_observer_gain")
+_APP_IMU_SETUP = ("imu_conf.rot_roll", "imu_conf.rot_pitch", "imu_conf.rot_yaw",
+                  "imu_conf.accel_offsets__0", "imu_conf.accel_offsets__1", "imu_conf.accel_offsets__2",
+                  "imu_conf.gyro_offsets__0", "imu_conf.gyro_offsets__1", "imu_conf.gyro_offsets__2",
+                  "imu_conf.sample_rate_hz")
+
+
+def _reset_signs(ns: Namespace, b: Bundle):
+    from . import catalog as cat
+    for prefix, kind, cfg, names in (("mc", "mcconf", b.mc, _MC_DETECTION),
+                                     ("app", "appconf", b.app, _APP_IMU_SETUP)):
+        c = cat.load(kind)
+        present = [n for n in names if n in cfg.values]
+        if len(present) != len(names):
+            continue
+        at_default = [n for n in names
+                      if abs(cfg.values[n] - c.default(n)) <= 1e-9 * max(1.0, abs(c.default(n)))]
+        ns.set(f"reset.{prefix}_at_default", len(at_default), "Source",
+               f"bldc {kind} defaults", deps=[f"{prefix}.{n}" for n in names])
+        ns.set(f"reset.{prefix}_checked", len(names), "Source", f"bldc {kind} defaults")
 
 
 _HW_RE = re.compile(r"^\s*Hardware:\s*(\S+)", re.M)

@@ -84,6 +84,7 @@ docs/
 - [`docs/knowledge-base.md`](docs/knowledge-base.md): tuning reference and audit rules, with evidence labels
 - [`docs/upstream-findings.md`](docs/upstream-findings.md): known gaps resolved from source, and corrections to the knowledge base
 - [`docs/bundle-format.md`](docs/bundle-format.md): bundle and `meta.json` format
+- [`docs/firmware-updates.md`](docs/firmware-updates.md): what a firmware flash does to stored settings, and the procedure to follow
 - [`CLAUDE.md`](CLAUDE.md): hardware and constraints for AI-assisted development
 
 The reference material mixes developer documentation with community rules of
