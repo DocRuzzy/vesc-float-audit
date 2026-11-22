@@ -136,15 +136,15 @@ def _hw_status(ns: Namespace, m):
         if None not in cfg:
             # hw_status prints live offsets with %.2f. With boot calibration on
             # (foc_offsets_cal_mode bit 0, mcpwm_foc.c:489) they are re-measured at every
-            # power-on and drift a fraction of a count from the stored values; a different
-            # controller is typically off by many counts on some channel.
+            # power-on; on Board A consecutive boots differed by up to 3.8 counts (2026-11-22).
+            # A different controller was off by 28 counts on one channel.
             dev = max(abs(a - b) for a, b in zip(printed, cfg))
             cal_mode = ns.values.get("mc.foc_offsets_cal_mode")
             # Unknown (e.g. a Float Control export without the field): be lenient.
             boot_cal = cal_mode is None or bool(int(cal_mode) & 1)
             ns.set("hws.offset_max_dev", dev, "owner-reported", src,
                    deps=[f"mc.foc_offsets_current__{i}" for i in range(3)])
-            ns.set("hws.offset_tolerance", 2.0 if boot_cal else 0.05, "Source",
+            ns.set("hws.offset_tolerance", 6.0 if boot_cal else 0.05, "Source",
                    "bldc motor/mcpwm_foc.c:489", deps=["mc.foc_offsets_cal_mode"])
 
 

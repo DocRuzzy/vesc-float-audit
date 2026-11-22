@@ -165,7 +165,7 @@
   fail: hws.offset_max_dev > hws.offset_tolerance
   message: >-
     The FOC current offsets in mcconf.xml differ from those hw_status printed by up to
-    {hws.offset_max_dev:.2f} counts (tolerance {hws.offset_tolerance} counts; 2 when the
+    {hws.offset_max_dev:.2f} counts (tolerance {hws.offset_tolerance} counts; 6 when the
     controller recalibrates offsets at boot or the export does not say, 0.05 otherwise). Offsets are measured per controller, so this mcconf was
     saved from another board, or VESC Tool still held an earlier board's config when it was
     saved. Re-read the motor configuration from this board and export again; do not act on
