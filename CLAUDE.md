@@ -10,8 +10,8 @@ All boards run VESC firmware 7.00 and Refloat 1.3.1.x. The owner reports the
 package as "1.3.1.1": check the tags on `lukash/refloat`, pin to the one that
 exists, and say so if 1.3.1.1 is not a real release.
 
-- **Board A:** Fungineers Thor 301, 5" hub motor with N52 magnets (make and
-  model not yet confirmed), 20S2P Molicel P45B, charge-only BMS (no CAN
+- **Board A:** Fungineers Thor 301, original Future Motion Hypercore stator in
+  a The Float Life MTE 5" hub with N52 magnets, 20S2P Molicel P45B, charge-only BMS (no CAN
   BMS data), 10k NTC on ADC3, footpads on ADC1/ADC2.
 - **Board B:** Spintend Single Ubox 100V 100A, original Onewheel Pint hub motor,
   15S1P Molicel P45B, original BMS modified to charge-only (no BMS data).
