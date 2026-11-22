@@ -50,6 +50,7 @@ Evidence labels used throughout:
 |---|---|
 | Controller | Fungineers Thor 301, onboard ESP32 VESC Express |
 | IMU | LSM6DS3 [Dev] |
+| Motor | 5" hub motor with N52 magnets; make and model not yet confirmed |
 | Pack | 20S2P Molicel P45B, charge-only BMS, no CAN BMS data |
 | Extras | 10k NTC (B3950) on ADC3; footpads on ADC1/ADC2 |
 
@@ -61,6 +62,10 @@ Controller limits [Dev, Fungineers]:
 - PWM 10–60 kHz; minimum motor inductance 10 µH
 - Thermal foldback above 80 °C, cutoff at 100 °C
 - Connect XT60 before CAN: an unevenly seated XT60 can route current through the CAN transceiver
+
+Motor note: until the make is confirmed, do not assume reference values. If it is a
+Superflux 5" HT, the section 3 table gives R 65–85 mΩ, L 160–200 µH, λ 29–31 mWb,
+k 1.07–1.15 and 140 A [Comm]. In every case compute `k` from the detected λ.
 
 Derived settings:
 
@@ -347,6 +352,7 @@ and fault codes; roll and yaw rate.
 - Firmware defaults for `foc_fw_current_max` and `l_temp_accel_dec` from a primary source
 - Spintend Single Ubox 100V 100A: phase/absolute current limits, IMU part, I²C bus speed
 - Pint motor reference R / L / λ and a sensible motor current max
+- Board A motor make and model (5" hub, N52 magnets) and its reference values
 - Whether the 1.3 on/off speed limits are truly independent per direction (release notes and a third-party analysis disagree)
 - Units of the 1.3 smoothing time constants (seconds is inferred, not documented)
 - Whether "Refloat 1.3.1.1" is a real tag
