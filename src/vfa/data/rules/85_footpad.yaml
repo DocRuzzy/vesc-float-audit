@@ -1,0 +1,37 @@
+- id: FP-001
+  title: Both footpad thresholds are 0; the board never sees feet off
+  severity: critical
+  evidence: Source
+  category: footpad
+  fail: footpad.mode == "disabled"
+  message: fault_adc1 and fault_adc2 are both 0. Refloat then reports both sensors engaged permanently, so no footpad (switch) fault can ever disengage the board.
+  rationale: footpad_sensor.c treats a 0 threshold as "always on"; with both at 0 the state is always FS_BOTH.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/footpad_sensor.c#L33-L46"]
+- id: FP-002
+  title: Single-sensor footpad mode
+  severity: warning
+  evidence: Source
+  category: footpad
+  fail: footpad.mode == "single"
+  message: One footpad threshold is 0 (ADC1 {rf.fault_adc1} V, ADC2 {rf.fault_adc2} V), so only one sensor is used. Half-switch faults cannot occur.
+  rationale: footpad_sensor.c single-sensor path.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/footpad_sensor.c#L33-L46"]
+- id: FP-003
+  title: Footpad threshold near either end of the ADC range
+  severity: warning
+  evidence: Analysis
+  category: footpad
+  when: footpad.mode != "disabled"
+  fail: (rf.fault_adc1 > 3.0 or (rf.fault_adc1 > 0 and rf.fault_adc1 < 0.5)) or (rf.fault_adc2 > 3.0 or (rf.fault_adc2 > 0 and rf.fault_adc2 < 0.5))
+  message: Footpad thresholds ADC1 {rf.fault_adc1} V, ADC2 {rf.fault_adc2} V. Near 3.3 V a pressed pad may not register; below 0.5 V noise may read as pressed. Check against logged ADC voltages.
+  rationale: The ADC range is 0-3.3 V; thresholds should sit clear of the idle and pressed voltages.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: FP-004
+  title: ADC app enabled on footpad pins
+  severity: critical
+  evidence: Analysis
+  category: footpad
+  fail: app.app_to_use in (2, 5, 10)
+  message: App to Use is {app.app_to_use} (an ADC app). The ADC app reads ADC1/ADC2 to command the motor while Refloat uses the same pins as footpads.
+  rationale: Two controllers acting on the motor from the same inputs. Refloat runs as a custom app; ADC control apps should be off.
+  sources: ["https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/res/config/7.00/parameters_appconf.xml"]

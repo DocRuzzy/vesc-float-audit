@@ -1,0 +1,101 @@
+# Refloat tune. Torque normalisation: Refloat 1.3 treats current-like gains
+# as torque on a 30-pole, 27 mWb reference motor. k = poles x flux / (30 x 0.027).
+- id: TUNE-001
+  title: Torque normalisation factor away from 1
+  severity: info
+  evidence: Source
+  category: tune
+  crosscheck: flux_norm
+  fail: abs(torque.k - 1) > 0.05
+  message: >-
+    k = {torque.k:.3f} ({mc.si_motor_poles} poles, flux {mc.foc_motor_flux_linkage:.5f} Wb).
+    At runtime each configured "amp" of kp/kp2/ki/ki_limit/booster/torque-tilt start/ATR ratio
+    commands {torque.amps_per_ref_amp:.3f} phase amps on this motor (the same torque as 1 A on the
+    reference motor). A tune copied from a board with a different k feels {torque.amps_per_ref_amp:.2f}x
+    as strong in current.
+  rationale: >-
+    pid.c multiplies gains by TORQUE_CONSTANT_COMPAT (1.5 x 15 x 0.027) to get torque;
+    motor_data.c converts torque to current with 1 / (1.5 x pole_pairs x flux). The ratio
+    is 1/k. The 1.2 -> 1.3 conversion multiplies those gains by k to keep the old current.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/lib/utils.h#L37-L38", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/pid.c#L61-L69", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L102-L109", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L190-L195", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/ui.qml.in#L1430-L1458"]
+- id: TUNE-002
+  title: Angle P outside the recommended 10-35
+  severity: warning
+  evidence: Dev
+  category: tune
+  fail: rf.kp < 10 or rf.kp > 35
+  message: Angle P {rf.kp}. Refloat's help text recommends 10-35 and urges caution near 35.
+  rationale: Refloat settings.xml help text for kp.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: TUNE-003
+  title: Angle I outside the recommended 0.005-0.08
+  severity: warning
+  evidence: Dev
+  category: tune
+  fail: rf.ki > 0.08 or (rf.ki < 0.005 and rf.ki != 0)
+  message: Angle I {rf.ki}. Refloat's help text recommends 0.005-0.08.
+  rationale: Refloat settings.xml help text for ki.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: TUNE-004
+  title: I-term limit outside the recommended 20-30 A
+  severity: warning
+  evidence: Dev
+  category: tune
+  fail: rf.ki_limit < 20 or rf.ki_limit > 30
+  message: I Term Limit {rf.ki_limit} A. Refloat's help text recommends 20-30 A; 0 disables it (not recommended).
+  rationale: Limits I-term windup on inclines and landings.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: TUNE-005
+  title: Very short smoothing time constants
+  severity: info
+  evidence: Comm
+  category: tune
+  fail: rf.atr.filter.time_constant < 0.05 or rf.torque_tilt.filter.time_constant < 0.05
+  message: "Smoothing time constants: ATR {rf.atr.filter.time_constant} s, torque tilt {rf.torque_tilt.filter.time_constant} s (defaults 0.3 s / 0.2 s). Fast smoothing with ATR or torque tilt feedback is a common cause of surging."
+  rationale: Time constants are in seconds (ema.c converts tau to a cutoff of 1/(2 pi tau)).
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/filters/ema.c", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/filters/smooth_setpoint.c", docs/knowledge-base.md §8]
+- id: TUNE-006
+  title: Moving faults disabled
+  severity: warning
+  evidence: Source
+  category: tune
+  fail: rf.fault_moving_fault_disabled == 1
+  message: "Disable Moving Faults is on: footpad faults are ignored while moving forward above 2 x Half State Fault ERPM ({rf.fault_adc_half_erpm} ERPM) with roll within 40 deg."
+  rationale: Refloat's help text says this requires correct speed calibration and a tail-heavy board, or the board will ghost.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: TUNE-007
+  title: Switch fault delays shorter than community practice
+  severity: info
+  evidence: Comm
+  category: tune
+  fail: rf.fault_delay_switch_full < 300 or rf.fault_delay_switch_half < 500
+  message: Switch fault delays are full {rf.fault_delay_switch_full} ms and half {rf.fault_delay_switch_half} ms. Community practice is full 300 ms and half 500 ms or more; the Refloat default is 250/250.
+  rationale: A short delay disengages on a momentary heel lift; a long one delays the stop when stepping off.
+  sources: [docs/knowledge-base.md §5]
+- id: TUNE-008
+  title: Refloat package disabled
+  severity: critical
+  evidence: Source
+  category: tune
+  fail: rf.disabled == 1
+  message: The Refloat config has Disable Package set.
+  rationale: The board will not balance.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: TUNE-009
+  title: Refloat config is untouched defaults
+  severity: info
+  evidence: Source
+  category: tune
+  fail: rf.meta.is_default == 1
+  message: The Refloat config reports "Config is Default".
+  rationale: Defaults are tuned for the 30-pole, 27 mWb reference motor; check k (TUNE-001).
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: TUNE-010
+  title: Start behaviours that engage without both feet
+  severity: info
+  evidence: Source
+  category: tune
+  fail: rf.startup_simplestart_enabled == 1 or rf.startup_pushstart_enabled == 1 or rf.startup_dirtylandings_enabled == 1
+  message: "Simple start {rf.startup_simplestart_enabled}, push start {rf.startup_pushstart_enabled}, dirty landings {rf.startup_dirtylandings_enabled}."
+  rationale: Listed so the owner confirms they are intended.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]

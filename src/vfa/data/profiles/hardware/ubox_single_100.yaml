@@ -1,0 +1,47 @@
+# Spintend Single Ubox 100V 100A (Board B).
+# Assumes the controller runs the UBOX_SINGLE_100 firmware target. Confirm with
+# 'fwinfo' (HW name) before trusting the limits below: the same core file also
+# builds UBOX_SINGLE_80 and UBOX_SINGLE_85_200 with different limits.
+id: ubox_single_100
+name: Spintend Single Ubox 100V 100A
+fw_hw_name: {value: UBOX_SINGLE_100, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L29-L30"}
+target_mapping: {value: "product 'Single Ubox 100V 100A' -> target UBOX_SINGLE_100", evidence: UNVERIFIED, source: "Spintend site not reachable; inferred from target names"}
+
+fw_limits:
+  current: {value: 135.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L277-L281"}
+  current_in: {value: 135.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L277-L281"}
+  abs_current: {value: 180.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L277-L281"}
+  vin_min: {value: 11.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L283-L289"}
+  vin_max: {value: 95.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L283-L289"}
+  duty_max: {value: 0.99, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L293"}
+  temp_fet_max: {value: 110.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L294"}
+
+# No vendor ratings could be read (spintend.com unreachable). Rules that need
+# them report "not evaluated" rather than passing.
+vendor:
+  max_operating_v: {value: null, evidence: UNVERIFIED, source: "not found"}
+  min_recommended_v: {value: null, evidence: UNVERIFIED, source: "not found"}
+  battery_current_max: {value: 100.0, evidence: UNVERIFIED, source: "product name only ('100A'); not stated whether battery or phase"}
+  phase_current_abs_max: {value: null, evidence: UNVERIFIED, source: "not found"}
+  phase_current_recommended: {value: null, evidence: UNVERIFIED, source: "not found"}
+  pwm_min_hz: {value: null, evidence: UNVERIFIED, source: "not found"}
+  pwm_max_hz: {value: null, evidence: UNVERIFIED, source: "not found"}
+  min_inductance_h: {value: null, evidence: UNVERIFIED, source: "not found"}
+
+default_overrides:
+  l_min_vin: {value: 12.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L244"}
+  l_max_vin: {value: 93.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L247"}
+  foc_f_zv: {value: 30000.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L253"}
+  l_abs_current_max: {value: 160.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L256"}
+  l_in_current_max: {value: 84.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L262"}
+  l_in_current_min: {value: -65.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L265"}
+
+imu:
+  part: {value: BMI160, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L216-L220"}
+  bus:
+    stock:
+      kind: {value: i2c_bitbang, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/imu.c#L141-L145"}
+      khz: {value: 400, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/imu.c#L265"}
+      max_rate_hz: {value: 1000, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/bmi160_wrapper.c#L36-L40"}
+
+esp32_express: {value: false, evidence: UNVERIFIED, source: "hwconf defines a permanent NRF UART; no ESP32 found"}

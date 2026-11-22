@@ -4,6 +4,13 @@ Condensed from the research report of 2026-11-22. Intended as the seed for the
 `vesc-float-audit` rule engine: every range and cross-check here should become a rule
 with an id, severity, rationale and source.
 
+> **Update 2026-11-22:** the known gaps (§11) were checked against the pinned upstream
+> sources. Several statements below are corrected or made precise by the source:
+> per-cell LV/HV thresholds, the exact torque ratio `k = poles·λ/(30·0.027)`, the
+> conversion parameter lists, the Mahony reset condition and the Thor 301 IMU bus.
+> See [`upstream-findings.md`](upstream-findings.md) § "Corrections"; the rule
+> engine follows the source where they differ.
+
 Evidence labels used throughout:
 
 - **[Dev]** documented by the Refloat author, the firmware author or the controller vendor
@@ -357,11 +364,19 @@ and fault codes; roll and yaw rate.
 
 ## 11. Known gaps
 
-- Exact Refloat 1.3 default values
-- Firmware defaults for `foc_fw_current_max` and `l_temp_accel_dec` from a primary source
-- Spintend Single Ubox 100V 100A: phase/absolute current limits, IMU part, I²C bus speed
-- Pint motor reference R / L / λ and a sensible motor current max
-- Detected R / L / λ for the Hypercore stator in the MTE 5" N52 hub (Board A)
-- Whether the 1.3 on/off speed limits are truly independent per direction (release notes and a third-party analysis disagree)
-- Units of the 1.3 smoothing time constants (seconds is inferred, not documented)
-- Whether "Refloat 1.3.1.1" is a real tag
+Status as of 2026-11-22. Details and file:line evidence are in
+[`upstream-findings.md`](upstream-findings.md).
+
+| Gap | Status |
+|---|---|
+| Exact Refloat 1.3 defaults | Resolved from `settings.xml` at v1.3.1 |
+| Firmware defaults for `foc_fw_current_max` and `l_temp_accel_dec` | Resolved: 0 A and 0.15 (`motor/mcconf_default.h:491`, `:114`) |
+| Spintend Single Ubox 100V 100A limits, IMU part, I²C bus speed | Firmware limits ±135 A motor/battery and 180 A abs; BMI160 on bit-banged I²C at 400 kHz, capped at 1000 Hz. The vendor ratings and the installed firmware target are still UNVERIFIED |
+| Pint motor reference R / L / λ and current max | Open: no primary source |
+| Detected R / L / λ for Board A | Open: comes from the board's `mcconf.xml` |
+| Independence of the 1.3 on/off speed limits | Resolved: on and off are independent; up and down share the same pair in 1.3.1 |
+| Units of the 1.3 smoothing time constants | Resolved: seconds |
+| Whether "Refloat 1.3.1.1" is a real tag | Resolved: no such tag; pinned to v1.3.1 |
+
+Vendor pages (Fungineers, Spintend, Molicel) could not be reached from the build
+environment, so the vendor figures in §2 remain UNVERIFIED.

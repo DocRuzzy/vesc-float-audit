@@ -1,0 +1,18 @@
+{
+  "board_name": "Example A (synthetic)",
+  "hardware": "thor301",
+  "firmware": "7.00",
+  "firmware_variant": "stock",
+  "package": "Refloat",
+  "package_version": "1.3.1",
+  "motor": {
+    "name": "Hypercore stator, TFL MTE 5in hub, N52",
+    "profile": "hypercore_mte5_n52"
+  },
+  "pack": {
+    "s": 20,
+    "p": 2,
+    "cell": "molicel_p45b"
+  },
+  "bms": "charge-only"
+}

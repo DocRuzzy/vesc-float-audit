@@ -1,0 +1,108 @@
+# Ride log checks. Float Control and Floaty field names are reverse-engineered
+# [UNVERIFIED]; findings from those logs carry that label.
+- id: LOG-001
+  title: Logged duty above the duty pushback threshold
+  severity: warning
+  evidence: Analysis
+  category: log
+  crosscheck: duty_vs_fw
+  when: log.present
+  fail: log.duty_max > rf.tiltback_duty + 0.03
+  message: Logged duty reached {log.duty_max:.0%}, above the {rf.tiltback_duty:.0%} pushback threshold.
+  rationale: The rider rode through pushback, or pushback is too slow to hold them back.
+  sources: [docs/knowledge-base.md §7.9]
+- id: LOG-002
+  title: Logged duty within 5% of max duty
+  severity: critical
+  evidence: Analysis
+  category: log
+  crosscheck: duty_vs_fw
+  when: log.present
+  fail: log.duty_max >= duty.margin_point
+  message: Logged duty reached {log.duty_max:.0%}, within 5% of Maximum Duty Cycle {mc.l_max_duty:.0%}. There was almost no headroom left at that moment.
+  rationale: Near max duty the board cannot recover pitch.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L100"]
+- id: LOG-003
+  title: Motor current saturating at its limit
+  severity: warning
+  evidence: Analysis
+  category: log
+  when: log.present
+  fail: log.frac_motor_at_limit > 0.005
+  message: Motor current was within 3% of Motor Current Max {mc.l_current_max:.0f} A in {log.frac_motor_at_limit:.1%} of running samples (peak {log.i_motor_abs_max:.0f} A).
+  rationale: A current trace flat at the limit before an event is the classic nosedive signature.
+  sources: [docs/knowledge-base.md §8]
+- id: LOG-004
+  title: Battery current saturating at its limit
+  severity: warning
+  evidence: Analysis
+  category: log
+  crosscheck: cell_vs_battery
+  when: log.present
+  fail: log.frac_batt_at_limit > 0.005
+  message: Battery current was within 3% of Battery Current Max {mc.l_in_current_max:.0f} A in {log.frac_batt_at_limit:.1%} of running samples.
+  rationale: Battery current max binds at high duty.
+  sources: [docs/knowledge-base.md §2]
+- id: LOG-005
+  title: Logged voltage reached the cutoff start
+  severity: warning
+  evidence: Analysis
+  category: log
+  crosscheck: cutoffs_vs_tiltback
+  when: log.present
+  fail: log.v_min <= mc.l_battery_cut_start
+  message: Logged voltage fell to {log.v_min:.1f} V, at or below cutoff start {mc.l_battery_cut_start:.1f} V; current foldback was active.
+  rationale: Sag into foldback removes torque.
+  sources: [docs/knowledge-base.md §6]
+- id: LOG-006
+  title: Logged voltage near the overvoltage fault
+  severity: critical
+  evidence: Analysis
+  category: log
+  crosscheck: cutoffs_vs_tiltback
+  when: log.present
+  fail: log.v_max >= mc.l_max_vin - 1
+  message: Logged voltage reached {log.v_max:.1f} V, within 1 V of the {mc.l_max_vin:.1f} V overvoltage fault.
+  rationale: Regen at full charge; with a charge-only BMS HV pushback is the only guard.
+  sources: [docs/knowledge-base.md §2]
+- id: LOG-007
+  title: Logged voltage above HV pushback
+  severity: warning
+  evidence: Analysis
+  category: log
+  crosscheck: cutoffs_vs_tiltback
+  when: log.present
+  fail: log.v_max > thr.hv_v and log.v_max < mc.l_max_vin - 1
+  message: Logged voltage reached {log.v_max:.1f} V, above HV pushback {thr.hv_v:.1f} V.
+  rationale: HV pushback was active during the ride (often a descent off the charger).
+  sources: [docs/knowledge-base.md §8]
+- id: LOG-008
+  title: Fault codes in the log
+  severity: warning
+  evidence: Analysis
+  category: log
+  when: log.present
+  fail: log.fault_count > 0
+  message: "Fault codes seen: {log.fault_codes}."
+  rationale: Read 'faults' in the terminal for the context of each.
+  sources: [docs/knowledge-base.md §9]
+- id: LOG-009
+  title: MOSFET temperature reached Refloat's temperature pushback
+  severity: warning
+  evidence: Source
+  category: log
+  when: log.present
+  fail: log.temp_mos_max >= mc.l_temp_fet_start - 3
+  message: Logged MOSFET temperature reached {log.temp_mos_max:.0f} degC; Refloat's temperature pushback starts at l_temp_fet_start - 3 = {mc.l_temp_fet_start}-3 degC.
+  rationale: Refloat sets its MOSFET alert 3 degC below the firmware foldback start.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L98-L99"]
+- id: LOG-010
+  title: Footpad readings below threshold while riding
+  severity: warning
+  evidence: Analysis
+  category: log
+  when: log.present
+  fail: log.footpad_low_while_running > 0
+  message: "{log.footpad_low_while_running} running samples had a footpad ADC below its threshold (ADC1 {rf.fault_adc1} V, ADC2 {rf.fault_adc2} V). Check for dropouts or a marginal threshold."
+  rationale: Random disengages trace back to ADC thresholds against real voltages.
+  sources: [docs/knowledge-base.md §8]

@@ -1,0 +1,56 @@
+# Fungineers Thor 301 (Board A).
+# Every value is {value, evidence, source}. Evidence labels:
+#   Source     confirmed in pinned upstream source during this work
+#   Dev        documented by the vendor/author, not re-read here
+#   UNVERIFIED not confirmed from a primary source
+id: thor301
+name: Fungineers Thor 301
+fw_hw_name: {value: Thor301, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301.h#L23"}
+
+# Ranges VESC Tool will accept for this target (HW_LIM_*). These are firmware
+# setting limits, not vendor ratings.
+fw_limits:
+  current: {value: 300.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L246"}
+  current_in: {value: 150.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L247"}
+  abs_current: {value: 315.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L248"}
+  vin_min: {value: 38.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L249"}
+  vin_max: {value: 97.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L249"}
+  duty_max: {value: 0.95, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L252"}
+  temp_fet_max: {value: 100.0, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L253"}
+
+# Vendor ratings. The Fungineers help centre could not be reached from the
+# build environment, so these are the knowledge-base figures, unconfirmed.
+vendor:
+  max_operating_v: {value: 84.0, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2 (Fungineers help centre, not re-read)"}
+  min_recommended_v: {value: 45.0, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+  battery_current_max: {value: 100.0, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+  phase_current_abs_max: {value: 300.0, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+  phase_current_recommended: {value: 250.0, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+  pwm_min_hz: {value: 10000.0, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+  pwm_max_hz: {value: 60000.0, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+  min_inductance_h: {value: 1.0e-5, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+
+# Compiled-in defaults that differ from motor/mcconf_default.h.
+default_overrides:
+  l_min_vin: {value: 40.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L221"}
+  l_max_vin: {value: 92.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L224"}
+  foc_f_zv: {value: 30000.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L230"}
+  l_abs_current_max: {value: 250.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L233"}
+  l_in_current_max: {value: 100.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L239"}
+  l_in_current_min: {value: -50.0, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L242"}
+
+imu:
+  part: {value: LSM6DS3, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L178-L186"}
+  # Stock 7.00 does not define LSM6DS3_USE_SPI for this target, so imu.c
+  # drives the LSM6DS3 as bit-banged I2C on the SPI pins at 400 kHz.
+  bus:
+    stock:
+      kind: {value: i2c_bitbang, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/imu.c#L173-L180"}
+      khz: {value: 400, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/imu.c#L310-L315"}
+      max_rate_hz: {value: null, evidence: Source, source: "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/lsm6ds3.c#L379 (no cap on the sampling loop)"}
+    rflt-xtras-0.5:
+      kind: {value: spi_hw, evidence: Source, source: "https://github.com/lukash/bldc/blob/ddf18711a6b9012d1dea6a9bedec3d68f8d9ca99/hwconf/fungineers/301/hw_Thor301_core.h#L176-L188"}
+      khz: {value: null, evidence: UNVERIFIED, source: "bus clock not read"}
+      max_rate_hz: {value: null, evidence: UNVERIFIED, source: "not read"}
+
+esp32_express: {value: true, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}

@@ -1,0 +1,138 @@
+# IMU type, rate and bus. On firmware 6.06+/Refloat 1.3 the PID runs in the
+# IMU callback, so the IMU sample rate is the control-loop rate.
+- id: IMU-001
+  title: LSM6DS3 at 1200 Hz or more on the 400 kHz bus
+  severity: critical
+  evidence: Dev
+  category: imu
+  crosscheck: imu_bus
+  when: imu.part == "LSM6DS3" and imu.bus_kind == "i2c_bitbang" and imu.bus_khz == 400
+  fail: app.imu_conf.sample_rate_hz >= 1200
+  message: IMU sample rate {app.imu_conf.sample_rate_hz} Hz on an LSM6DS3 over bit-banged I2C at 400 kHz. 1200 Hz on this bus causes spurious resets.
+  rationale: >-
+    The rflt-xtras bus/rate matrix rates 400 kHz / 900 Hz safe and 400 kHz / 1200 Hz
+    dangerous. Stock 7.00 drives the Thor 301 LSM6DS3 at 400 kHz (no LSM6DS3_USE_SPI).
+    The matrix itself comes from the rflt-xtras announcement and was not re-read here.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/imu.c#L173-L180", "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/imu.c#L310-L315", docs/knowledge-base.md §4]
+- id: IMU-002
+  title: LSM6DS3 rate between the tested points on the 400 kHz bus
+  severity: warning
+  evidence: Dev
+  category: imu
+  crosscheck: imu_bus
+  when: imu.part == "LSM6DS3" and imu.bus_kind == "i2c_bitbang" and imu.bus_khz == 400
+  fail: app.imu_conf.sample_rate_hz > 900 and app.imu_conf.sample_rate_hz < 1200
+  message: IMU sample rate {app.imu_conf.sample_rate_hz} Hz lies between the matrix's safe 900 Hz and dangerous 1200 Hz points on the 400 kHz bus.
+  rationale: Untested combination; treat as unknown, not safe.
+  sources: [docs/knowledge-base.md §4]
+- id: IMU-003
+  title: Configured IMU rate above the firmware's cap for this IMU
+  severity: warning
+  evidence: Source
+  category: imu
+  crosscheck: imu_bus
+  fail: app.imu_conf.sample_rate_hz > imu.bus_max_rate_hz
+  message: IMU sample rate {app.imu_conf.sample_rate_hz} Hz, but the stock firmware caps a {imu.part} on I2C at {imu.bus_max_rate_hz} Hz. The control loop runs at {imu.effective_rate_hz} Hz.
+  rationale: bmi160_wrapper_init clamps rate_hz to 1000 for I2C. Refloat's loop follows the IMU callback.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/bmi160_wrapper.c#L33-L40"]
+- id: IMU-004
+  title: IMU rate below 400 Hz
+  severity: warning
+  evidence: Source
+  category: imu
+  crosscheck: imu_bus
+  fail: app.imu_conf.sample_rate_hz < 400
+  message: IMU sample rate {app.imu_conf.sample_rate_hz} Hz; the firmware default is 200 Hz and the proven balance settings are 416 or 833 Hz. The balance loop runs at this rate.
+  rationale: Refloat runs its PID in the IMU callback; Loop Hertz no longer exists.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/main.c#L1214-L1222", docs/knowledge-base.md §4]
+- id: IMU-005
+  title: IMU rate is not one of the long-proven settings
+  severity: info
+  evidence: Comm
+  category: imu
+  crosscheck: imu_bus
+  fail: app.imu_conf.sample_rate_hz >= 400 and app.imu_conf.sample_rate_hz not in (416, 833, 832, 800, 400)
+  message: IMU sample rate {app.imu_conf.sample_rate_hz} Hz. 416 and 833 Hz are the long-proven settings (LSM6DS3 ODRs). The LSM6DS3 gyro ODR rounds up to the next of 416/833/1660 Hz.
+  rationale: Knowledge base §4; ODR rounding from lsm6ds3.c.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/lsm6ds3.c#L139-L156", docs/knowledge-base.md §4]
+- id: IMU-006
+  title: App Config Mahony KP above 1; Refloat will reset it
+  severity: info
+  evidence: Source
+  category: imu
+  fail: app.imu_conf.mahony_kp > 1
+  message: imu_conf.mahony_kp is {app.imu_conf.mahony_kp}. Refloat 1.3.1 overwrites KP > 1 with 0.2 (and KI 0, confidence decay 0.1) at startup, treating it as a pre-1.3 setup.
+  rationale: Backwards-compatibility hack in configure().
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/main.c#L205-L214"]
+- id: IMU-007
+  title: App Config Mahony KP/KI not at the recommended 0.2/0
+  severity: warning
+  evidence: Dev
+  category: imu
+  fail: (app.imu_conf.mahony_kp > 0.21 and app.imu_conf.mahony_kp <= 1) or app.imu_conf.mahony_kp < 0.19 or app.imu_conf.mahony_ki != 0
+  message: Mahony KP {app.imu_conf.mahony_kp}, KI {app.imu_conf.mahony_ki}. Values between 0.2 and 1 are not reset by Refloat. This filter feeds true pitch, fault checks, quickstop and the booster.
+  rationale: Refloat 1.3 expects KP 0.2, KI 0 in App Config; its own balance filter gains live in the Refloat config.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/main.c#L205-L214", docs/knowledge-base.md §4]
+- id: IMU-008
+  title: Switching frequency outside 25-30 kHz
+  severity: warning
+  evidence: Dev
+  category: imu
+  crosscheck: imu_bus
+  fail: mc.foc_f_zv < 25000 or mc.foc_f_zv > 30000
+  message: Zero Vector Frequency {mc.foc_f_zv:.0f} Hz. 25 kHz gave the most stable loop timing in the Refloat author's tests; both boards default to 30 kHz.
+  rationale: Switching frequency is a major driver of control-loop jitter.
+  sources: [docs/knowledge-base.md §3, "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L230"]
+- id: IMU-009
+  title: High switching frequency combined with a high IMU rate
+  severity: warning
+  evidence: UNVERIFIED
+  category: imu
+  crosscheck: imu_bus
+  fail: mc.foc_f_zv > 30000 and app.imu_conf.sample_rate_hz >= 1000
+  message: ZVF {mc.foc_f_zv:.0f} Hz with IMU at {app.imu_conf.sample_rate_hz} Hz. Very high ZVF with a high IMU rate has reset controllers.
+  rationale: The knowledge base lists this as a red flag but gives no thresholds; the 30 kHz / 1000 Hz thresholds here are this tool's, not documented.
+  sources: [docs/knowledge-base.md §3, docs/knowledge-base.md §7]
+- id: IMU-010
+  title: Measured control-loop frequency differs from the IMU rate
+  severity: warning
+  evidence: Source
+  category: imu
+  crosscheck: imu_bus
+  when: has(meta.measured.control_loop_hz)
+  fail: abs(meta.measured.control_loop_hz - imu.effective_rate_hz) > 0.05 * imu.effective_rate_hz
+  message: Measured control loop {meta.measured.control_loop_hz} Hz against an expected {imu.effective_rate_hz} Hz.
+  rationale: Refloat tracks the IMU callback frequency; a mismatch points at bus contention, jitter or a cap.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/main.c#L1138-L1160"]
+- id: IMU-011
+  title: Control-loop frequency not measured
+  severity: info
+  evidence: Source
+  category: imu
+  crosscheck: imu_bus
+  when: not has(meta.measured.control_loop_hz)
+  fail: true
+  message: No measured control-loop frequency in meta.json. Read "Control Loop Frequency" from Refloat's realtime data and record it as measured.control_loop_hz.
+  rationale: The rate rules check configuration only; whether the loop achieves it is visible only on the board.
+  sources: [docs/knowledge-base.md §1 item 3]
+- id: IMU-012
+  title: Fast IMU bus without IMU_FILTER_LOW
+  severity: warning
+  evidence: Dev
+  category: imu
+  crosscheck: imu_bus
+  when: imu.bus_khz == 700
+  fail: app.imu_conf.filter != 0
+  message: IMU on the 700 kHz bus with filter {app.imu_conf.filter}; IMU_FILTER_LOW is recommended with the fast bus.
+  rationale: rflt-xtras guidance (knowledge base §4).
+  sources: [docs/knowledge-base.md §4]
+- id: IMU-013
+  title: IMU bus for this firmware variant is not characterised
+  severity: warning
+  evidence: Source
+  category: imu
+  crosscheck: imu_bus
+  fail: not has(imu.bus_kind) or not has(imu.bus_khz)
+  message: The {hw.name} profile has no confirmed IMU bus data for firmware variant {imu.variant}; the bus/rate checks cannot be applied.
+  rationale: A missing check is reported, not assumed safe.
+  sources: [src/vfa/data/profiles/hardware]

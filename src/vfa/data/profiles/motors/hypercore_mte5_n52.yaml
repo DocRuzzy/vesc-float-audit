@@ -1,0 +1,15 @@
+# Stock Future Motion Hypercore stator in a The Float Life MTE 5" hub with N52
+# magnets (Board A). No published detection values exist for this hub.
+id: hypercore_mte5_n52
+name: Hypercore stator, TFL MTE 5" hub, N52
+poles: {value: 30, evidence: Comm, source: "docs/knowledge-base.md §1 (FM hub motors, 15 pole pairs)"}
+r_ohm_min: {value: 0.080, evidence: Comm, source: "docs/knowledge-base.md §3 Hypercore row"}
+r_ohm_max: {value: 0.105, evidence: Comm, source: "docs/knowledge-base.md §3 Hypercore row"}
+l_h_min: {value: 1.90e-4, evidence: Comm, source: "docs/knowledge-base.md §3 Hypercore row"}
+l_h_max: {value: 2.30e-4, evidence: Comm, source: "docs/knowledge-base.md §3 Hypercore row"}
+# N52 rotor should sit at or above the top of the stock Hypercore range. The
+# lower bound here is the stock Hypercore minimum. [Analysis]
+flux_wb_min: {value: 0.026, evidence: Analysis, source: "docs/knowledge-base.md §2 motor note"}
+flux_wb_max: {value: 0.032, evidence: UNVERIFIED, source: "no reference; N52 GTS ~29-30 mWb [Comm] plus margin"}
+current_max_typical: {value: 120.0, evidence: Comm, source: "docs/knowledge-base.md §3"}
+saturation_current: {value: 75.0, evidence: Comm, source: "docs/knowledge-base.md §2 (reported 70-80 A)"}

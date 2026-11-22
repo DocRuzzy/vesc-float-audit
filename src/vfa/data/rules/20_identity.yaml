@@ -1,0 +1,100 @@
+# Motor and battery identity.
+- id: ID-001
+  title: Motor pole count differs from the motor profile
+  severity: critical
+  evidence: Comm
+  category: identity
+  crosscheck: flux_norm
+  fail: mc.si_motor_poles != motor.poles
+  message: si_motor_poles is {mc.si_motor_poles}; the {meta.hardware} motor profile expects {motor.poles}.
+  rationale: >-
+    Refloat computes its torque constant from poles x flux linkage, so a wrong pole count
+    rescales every torque-based gain. It also corrupts speed and distance.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L102-L109", docs/knowledge-base.md §1]
+- id: ID-002
+  title: Battery cell count in mcconf differs from the pack
+  severity: critical
+  evidence: Source
+  category: identity
+  crosscheck: cutoffs_vs_tiltback
+  fail: mc.si_battery_cells != pack.s
+  message: si_battery_cells is {mc.si_battery_cells} but the pack is {pack.s}S. Refloat's per-cell LV/HV thresholds become {thr.lv_v:.1f} V / {thr.hv_v:.1f} V.
+  rationale: >-
+    Refloat multiplies per-cell LV/HV pushback thresholds (values below 10 V) by
+    si_battery_cells. A wrong count moves both pushbacks to the wrong pack voltage.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L78-L90"]
+- id: ID-003
+  title: Flux linkage is zero or missing; Refloat skips torque normalisation
+  severity: critical
+  evidence: Source
+  category: identity
+  crosscheck: flux_norm
+  fail: mc.foc_motor_flux_linkage <= 0.001
+  message: foc_motor_flux_linkage is {mc.foc_motor_flux_linkage} Wb. Refloat falls back to the 27 mWb reference motor, and the observer is unconfigured.
+  rationale: Refloat only uses the measured torque constant when flux linkage > 0.001 Wb.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L102-L109"]
+- id: ID-004
+  title: Flux linkage outside the motor profile's range
+  severity: warning
+  evidence: Comm
+  category: identity
+  crosscheck: flux_norm
+  fail: mc.foc_motor_flux_linkage < motor.flux_wb_min or mc.foc_motor_flux_linkage > motor.flux_wb_max
+  message: "Flux linkage {mc.foc_motor_flux_linkage:.5f} Wb is outside {motor.flux_wb_min:.4f}-{motor.flux_wb_max:.4f} Wb for {motor.name}."
+  rationale: A wrong flux linkage skews Refloat's torque normalisation and the FOC observer. Re-run detection if it is far off.
+  sources: [docs/knowledge-base.md §3]
+- id: ID-005
+  title: Motor resistance outside the motor profile's range
+  severity: warning
+  evidence: Comm
+  category: identity
+  fail: mc.foc_motor_r < motor.r_ohm_min or mc.foc_motor_r > motor.r_ohm_max * 1.25
+  message: "R = {mc.foc_motor_r:.4f} ohm; expected {motor.r_ohm_min:.3f}-{motor.r_ohm_max:.3f} ohm (up to x1.25 is a common anti-crunch adjustment)."
+  rationale: R and L set the current controller and observer. Community practice raises R by 1.2-1.25 against crunch.
+  sources: [docs/knowledge-base.md §3]
+- id: ID-006
+  title: Motor inductance outside the motor profile's range
+  severity: warning
+  evidence: Comm
+  category: identity
+  fail: mc.foc_motor_l < motor.l_h_min or mc.foc_motor_l > motor.l_h_max
+  message: "L = {mc.foc_motor_l:.3e} H; expected {motor.l_h_min:.2e}-{motor.l_h_max:.2e} H."
+  rationale: See ID-005.
+  sources: [docs/knowledge-base.md §3]
+- id: ID-007
+  title: Motor inductance below the controller's minimum
+  severity: warning
+  evidence: UNVERIFIED
+  category: identity
+  fail: mc.foc_motor_l < hw.vendor.min_inductance_h
+  message: L = {mc.foc_motor_l:.3e} H is below the controller's stated minimum {hw.vendor.min_inductance_h:.1e} H.
+  rationale: Vendor minimum inductance, not re-read from the vendor.
+  sources: [docs/knowledge-base.md §2]
+- id: ID-008
+  title: Motor type is not FOC
+  severity: critical
+  evidence: Source
+  category: identity
+  fail: mc.motor_type != 2
+  message: motor_type is {mc.motor_type}; balance boards run FOC (2).
+  rationale: Refloat's torque model and the observer settings assume FOC.
+  sources: ["https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/res/config/7.00/parameters_mcconf.xml"]
+- id: ID-009
+  title: IMU is not the internal IMU
+  severity: warning
+  evidence: Source
+  category: identity
+  crosscheck: imu_bus
+  fail: app.imu_conf.type != 1
+  message: imu_conf.type is {app.imu_conf.type}; both boards have an internal {imu.part}. The bus and rate checks assume IMU_TYPE_INTERNAL.
+  rationale: The IMU checks use the controller's internal IMU wiring from the hardware config.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/imu/imu.c#L128-L180"]
+- id: ID-010
+  title: Switching frequency outside the controller's stated PWM range
+  severity: warning
+  evidence: UNVERIFIED
+  category: identity
+  fail: mc.foc_f_zv < hw.vendor.pwm_min_hz or mc.foc_f_zv > hw.vendor.pwm_max_hz
+  message: foc_f_zv {mc.foc_f_zv:.0f} Hz is outside the stated {hw.vendor.pwm_min_hz:.0f}-{hw.vendor.pwm_max_hz:.0f} Hz.
+  rationale: Vendor PWM range, not re-read from the vendor.
+  sources: [docs/knowledge-base.md §2]

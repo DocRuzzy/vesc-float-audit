@@ -1,0 +1,111 @@
+# Motor, absolute and hidden current caps.
+- id: CUR-001
+  title: Motor current max below 100 A
+  severity: critical
+  evidence: Comm
+  category: current
+  fail: mc.l_current_max < 100
+  message: Motor Current Max {mc.l_current_max:.0f} A. This is the balance loop's torque ceiling; adult riders are generally given 100 A or more.
+  rationale: Too low a ceiling gives a soft nosedive under hard acceleration or on hills.
+  sources: [docs/knowledge-base.md §3, docs/knowledge-base.md §7]
+- id: CUR-002
+  title: Motor braking current max below 100 A
+  severity: warning
+  evidence: Comm
+  category: current
+  fail: abs(mc.l_current_min) < 100
+  message: Motor Current Max Brake {mc.l_current_min:.0f} A limits braking torque the same way.
+  rationale: By analogy with CUR-001; braking is half of balancing.
+  sources: [docs/knowledge-base.md §3]
+- id: CUR-003
+  title: Absolute max current above the controller's recommended limit
+  severity: critical
+  evidence: Analysis
+  category: current
+  fail: mc.l_abs_current_max > hw.vendor.phase_current_recommended
+  message: Absolute Maximum Current {mc.l_abs_current_max:.0f} A is above the recommended {hw.vendor.phase_current_recommended:.0f} A.
+  rationale: Above the recommended limit the trip no longer protects the power stage.
+  sources: [docs/knowledge-base.md §2]
+- id: CUR-004
+  title: Absolute max current above the firmware's setting limit
+  severity: critical
+  evidence: Source
+  category: current
+  fail: mc.l_abs_current_max > hw.fw_limits.abs_current or mc.l_current_max > hw.fw_limits.current or mc.l_in_current_max > hw.fw_limits.current_in
+  message: "A current limit exceeds what the {hw.fw_hw_name} firmware accepts (abs {hw.fw_limits.abs_current:.0f} A, motor {hw.fw_limits.current:.0f} A, battery {hw.fw_limits.current_in:.0f} A). This suggests a no-limits build or a hand-edited file."
+  rationale: HW_LIM_* in the hardware config bound what VESC Tool accepts.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L246-L253", "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L277-L294"]
+- id: CUR-005
+  title: Absolute max current above the firmware default for this controller
+  severity: warning
+  evidence: Analysis
+  category: current
+  when: not has(hw.vendor.phase_current_recommended)
+  fail: mc.l_abs_current_max > hw.default_overrides.l_abs_current_max
+  message: No vendor phase current rating is on file for {hw.name}. Absolute max {mc.l_abs_current_max:.0f} A is above the firmware's compiled default {hw.default_overrides.l_abs_current_max:.0f} A.
+  rationale: Without a vendor rating, the hardware config's default is the only reference; it is not a rating.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L256"]
+- id: CUR-006
+  title: Too little margin between motor max and absolute max
+  severity: warning
+  evidence: Comm
+  category: current
+  fail: cur.abs_ratio < 1.3
+  message: Absolute max {mc.l_abs_current_max:.0f} A is only {cur.abs_ratio:.2f} x motor max {mc.l_current_max:.0f} A; transients on bumps or hard braking can trip it and cut the motor.
+  rationale: Community guidance is at least about 1.3 x motor max.
+  sources: [docs/knowledge-base.md §3]
+- id: CUR-007
+  title: Motor current max well above where the stator saturates
+  severity: info
+  evidence: Comm
+  category: current
+  fail: mc.l_current_max > motor.saturation_current * 2
+  message: Motor current max {mc.l_current_max:.0f} A against a reported saturation onset near {motor.saturation_current:.0f} A; extra current buys little torque and can cause crunch.
+  rationale: Hypercore stators are reported to saturate above roughly 70-80 A.
+  sources: [docs/knowledge-base.md §2]
+- id: CUR-008
+  title: Current scale below 100%
+  severity: critical
+  evidence: Analysis
+  category: current
+  fail: mc.l_current_max_scale < 1 or mc.l_current_min_scale < 1
+  message: Max/Min Current Scale are {mc.l_current_max_scale}/{mc.l_current_min_scale}. The firmware scales the motor limits down while Refloat plans against the unscaled l_current_max.
+  rationale: A hidden cap that engages under load is a nosedive.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L95", docs/knowledge-base.md §3]
+- id: CUR-009
+  title: Duty-cycle current limit start below 100%
+  severity: critical
+  evidence: Source
+  category: current
+  crosscheck: duty_vs_fw
+  fail: mc.l_duty_start < 1
+  message: Duty Cycle Current Limit Start is {mc.l_duty_start:.0%}; current is limited above that duty. The setup wizard's E-Skate preset writes 85%.
+  rationale: It removes torque exactly at high duty, where recovery needs it most.
+  sources: ["https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/mobile/SetupWizardFoc.qml#L72", "https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/mobile/SetupWizardFoc.qml#L124-L126"]
+- id: CUR-010
+  title: Wattage limit below battery voltage x battery current
+  severity: critical
+  evidence: Analysis
+  category: current
+  fail: mc.l_watt_max < pack.full_v * mc.l_in_current_max or abs(mc.l_watt_min) < pack.full_v * abs(mc.l_in_current_min)
+  message: Wattage limits {mc.l_watt_max:.0f} W / {mc.l_watt_min:.0f} W cap power below what the battery limits allow ({pack.full_v:.0f} V x {mc.l_in_current_max:.0f} A).
+  rationale: A wattage cap is a hidden limit that engages at speed.
+  sources: [docs/knowledge-base.md §3]
+- id: CUR-011
+  title: ERPM limit within reach
+  severity: critical
+  evidence: Analysis
+  category: current
+  fail: mc.l_max_erpm < erpm.no_load_max * 1.2 or abs(mc.l_min_erpm) < erpm.no_load_max * 1.2
+  message: ERPM limits {mc.l_min_erpm:.0f}/{mc.l_max_erpm:.0f} are within reach of the estimated no-load maximum {erpm.no_load_max:.0f} ERPM. The ERPM limit engages as a torque cut at that speed.
+  rationale: Capping ERPM to limit speed causes a nosedive at that speed.
+  sources: [docs/knowledge-base.md §6]
+- id: CUR-012
+  title: Phases not shorted at zero duty
+  severity: info
+  evidence: Comm
+  category: current
+  fail: mc.foc_short_ls_on_zero_duty == 0
+  message: Short Low-Side FETs on Zero Duty is off (firmware default). The community setting is on; Refloat's own parking brake is {rf.parking_brake_mode} (0 Always, 1 Idle, 2 Never).
+  rationale: Holds the board at standstill.
+  sources: [docs/knowledge-base.md §3]

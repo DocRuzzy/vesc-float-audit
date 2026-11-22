@@ -1,0 +1,11 @@
+id: hypercore_stock
+name: Future Motion Hypercore (stock)
+poles: {value: 30, evidence: Comm, source: "docs/knowledge-base.md §1"}
+r_ohm_min: {value: 0.080, evidence: Comm, source: "docs/knowledge-base.md §3"}
+r_ohm_max: {value: 0.105, evidence: Comm, source: "docs/knowledge-base.md §3"}
+l_h_min: {value: 1.90e-4, evidence: Comm, source: "docs/knowledge-base.md §3"}
+l_h_max: {value: 2.30e-4, evidence: Comm, source: "docs/knowledge-base.md §3"}
+flux_wb_min: {value: 0.026, evidence: Comm, source: "docs/knowledge-base.md §3"}
+flux_wb_max: {value: 0.030, evidence: Comm, source: "docs/knowledge-base.md §3"}
+current_max_typical: {value: 120.0, evidence: Comm, source: "docs/knowledge-base.md §3"}
+saturation_current: {value: 75.0, evidence: Comm, source: "docs/knowledge-base.md §2"}

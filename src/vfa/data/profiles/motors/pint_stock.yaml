@@ -1,0 +1,13 @@
+# Original Onewheel Pint hub motor (Board B). No reference R/L/flux values
+# were found; rules that need them report "not evaluated".
+id: pint_stock
+name: Onewheel Pint hub motor (original)
+poles: {value: 30, evidence: UNVERIFIED, source: "assumed same 15 pole-pair layout as other FM hubs; not confirmed"}
+r_ohm_min: {value: null, evidence: UNVERIFIED, source: "not found"}
+r_ohm_max: {value: null, evidence: UNVERIFIED, source: "not found"}
+l_h_min: {value: null, evidence: UNVERIFIED, source: "not found"}
+l_h_max: {value: null, evidence: UNVERIFIED, source: "not found"}
+flux_wb_min: {value: null, evidence: UNVERIFIED, source: "not found"}
+flux_wb_max: {value: null, evidence: UNVERIFIED, source: "not found"}
+current_max_typical: {value: null, evidence: UNVERIFIED, source: "not found"}
+saturation_current: {value: null, evidence: UNVERIFIED, source: "not found"}

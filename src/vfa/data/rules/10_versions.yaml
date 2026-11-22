@@ -1,0 +1,127 @@
+# Versions and config integrity.
+- id: VER-001
+  title: Refloat 1.3.0 has a nosehunting / rough-motor bug
+  severity: critical
+  evidence: Dev
+  category: versions
+  fail: ver.package_pinned in ("1.3.0", "1.3.0-beta1", "1.3.0-beta2", "1.3.0-beta3", "1.3.0-preview1", "1.3.0-preview2", "1.3.0-preview3")
+  message: Package version {ver.package} is a 1.3.0 build. Upgrade to 1.3.1.
+  rationale: 1.3.1 fixes a nosehunting / rough-motor bug present in 1.3.0 and a sample-rate dependence in the Mahony filter.
+  sources:
+    - https://github.com/lukash/refloat/releases/tag/v1.3.1
+    - docs/knowledge-base.md §1
+- id: VER-002
+  title: Darkride enabled on an affected Refloat version
+  severity: critical
+  evidence: Dev
+  category: versions
+  when: rf.fault_darkride_enabled == 1
+  fail: ver.package_pinned in ("1.1.0-beta1", "1.1.0-beta2", "1.1.0-beta3", "1.1.0", "1.1.1-beta1", "1.1.1-beta2", "1.1.1", "1.1.2", "1.2.0-beta1", "1.2.0-beta2")
+  message: Darkride is enabled on Refloat {ver.package}, which is in the affected range 1.1.0 to 1.2-beta2.
+  rationale: The knowledge base records a serious Darkride bug in Refloat 1.1.0 through 1.2-beta2.
+  sources: [docs/knowledge-base.md §1 item 7]
+- id: VER-003
+  title: Reported package version is not a Refloat release tag
+  severity: warning
+  evidence: Source
+  category: versions
+  fail: not ver.package_is_tag
+  message: >-
+    meta.json reports Refloat "{ver.package}", but lukash/refloat has no tag v{ver.package}.
+    Nearest release tag: {ver.package_pinned}. This audit uses the parameter names and
+    defaults of v1.3.1. Confirm the installed version on VESC Tool's Packages page or in
+    the Refloat AppUI.
+  rationale: >-
+    Parameter names, defaults and behaviour are taken from a specific tag. A version
+    string that matches no tag may be a mistyped version, a store build or a fork, and
+    its config may differ from the catalog. The vedderb/vesc_pkg store copy also reports 1.3.1.
+  sources:
+    - https://github.com/lukash/refloat/tags
+    - https://github.com/vedderb/vesc_pkg/blob/71922b1e4f50faf5d00f6cf544e413f80c2f179e/refloat/version
+- id: VER-004
+  title: Package version differs from the pinned catalog
+  severity: warning
+  evidence: Source
+  category: versions
+  fail: ver.package_pinned != "1.3.1"
+  message: Refloat {ver.package} is not 1.3.1; parameter names and defaults in this report come from v1.3.1 and may not match.
+  rationale: The catalog is generated from refloat src/conf/settings.xml at v1.3.1.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: VER-005
+  title: Firmware version differs from the pinned catalog
+  severity: warning
+  evidence: Source
+  category: versions
+  fail: ver.firmware != "7.00"
+  message: Firmware {ver.firmware} is not 7.00; mcconf/appconf names and defaults in this report come from 7.00.
+  rationale: The mcconf and appconf catalogs are generated from vesc_tool res/config/7.00 and bldc release_7_00.
+  sources: ["https://github.com/vedderb/vesc_tool/tree/6528c4e2a963e86ae4104737ddf7c76ffc987d84/res/config/7.00"]
+- id: VER-006
+  title: Tune converted from 1.2 more than once
+  severity: critical
+  evidence: Source
+  category: versions
+  crosscheck: flux_norm
+  when: has(meta.tune_conversions_from_1_2)
+  fail: meta.tune_conversions_from_1_2 > 1
+  message: >-
+    meta.json says "Convert from 1.2" was applied {meta.tune_conversions_from_1_2} times.
+    Torque-scaled gains are now off by k^n (k = {torque.k:.3f}).
+  rationale: >-
+    The 1.3.1 UI conversion multiplies kp, kp2, ki, ki_limit, booster currents, torque
+    tilt start current and both ATR amp ratios by k and divides both torque tilt strengths
+    by k, every time it is applied. It does not record that a tune was already converted.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/ui.qml.in#L1436-L1484"]
+- id: VER-007
+  title: Tune conversion history unknown on a motor where it matters
+  severity: warning
+  evidence: Analysis
+  category: versions
+  crosscheck: flux_norm
+  when: not has(meta.tune_conversions_from_1_2)
+  fail: abs(torque.k - 1) > 0.05
+  message: >-
+    k = {torque.k:.3f} on this motor, and meta.json does not record whether this tune was
+    converted from 1.2. If it was made on 1.2 and never converted, torque-scaled gains act
+    {torque.amps_per_ref_amp:.2f}x as strong (in phase amps) as on 1.2. If it was converted twice, they are k^2 off.
+  rationale: >-
+    The config itself cannot show whether a conversion happened. Ask the owner and record
+    tune_conversions_from_1_2 in meta.json.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/ui.qml.in#L1430-L1458", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/pid.c#L61-L69"]
+- id: VER-008
+  title: rflt-xtras firmware variant
+  severity: info
+  evidence: Source
+  category: versions
+  fail: imu.variant != "stock"
+  message: Firmware variant {imu.variant}. The IMU bus differs from stock 7.00 on Thor 301 (hardware SPI); the knowledge base's I2C bus/rate matrix does not apply to it.
+  rationale: lukash/bldc v7.00-rflt-xtras-0.5 moves the Thor 301 LSM6DS3 to hardware SPI.
+  sources: ["https://github.com/lukash/bldc/blob/ddf18711a6b9012d1dea6a9bedec3d68f8d9ca99/hwconf/fungineers/301/hw_Thor301_core.h#L176-L188"]
+
+- id: CFG-001
+  title: Config holds parameters the pinned catalog does not know
+  severity: warning
+  evidence: Source
+  category: versions
+  fail: cfg.mc_unknown + cfg.app_unknown + cfg.rf_unknown > 0
+  message: "Unknown parameters: mcconf {cfg.mc_unknown}, appconf {cfg.app_unknown}, refloat {cfg.rf_unknown}. The export is probably from another version; see the parse notes."
+  rationale: Unknown names mean the firmware or package version differs from the one the rules are written for.
+  sources: [src/vfa/configxml.py]
+- id: CFG-002
+  title: Config lacks parameters the pinned catalog expects
+  severity: warning
+  evidence: Source
+  category: versions
+  fail: cfg.mc_missing + cfg.app_missing + cfg.rf_missing > 0
+  message: "Missing parameters: mcconf {cfg.mc_missing}, appconf {cfg.app_missing}, refloat {cfg.rf_missing}. Rules that need them are reported as not evaluated."
+  rationale: A partial or older export cannot be fully audited.
+  sources: [src/vfa/configxml.py]
+- id: CFG-003
+  title: Values outside the range VESC Tool allows, or unparseable
+  severity: warning
+  evidence: Source
+  category: versions
+  fail: cfg.mc_out_of_range + cfg.app_out_of_range + cfg.rf_out_of_range + cfg.mc_bad_values + cfg.app_bad_values + cfg.rf_bad_values > 0
+  message: "Out-of-range values: mcconf {cfg.mc_out_of_range}, appconf {cfg.app_out_of_range}, refloat {cfg.rf_out_of_range}; unparseable: {cfg.mc_bad_values}/{cfg.app_bad_values}/{cfg.rf_bad_values}. See the parse notes."
+  rationale: The UI editors clamp to min/max; a value outside them was hand-edited or comes from another version.
+  sources: [src/vfa/configxml.py]

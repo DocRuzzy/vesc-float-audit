@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vesc-float-audit"
+version = "0.1.0"
+description = "Read-only configuration audit for VESC self-balancing boards running Refloat"
+requires-python = ">=3.10"
+dependencies = ["PyYAML>=6"]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+vfa = "vfa.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"vfa.data.upstream" = ["*.json"]
+"vfa.data.rules" = ["*.yaml"]
+"vfa.data.profiles.hardware" = ["*.yaml"]
+"vfa.data.profiles.cells" = ["*.yaml"]
+"vfa.data.profiles.motors" = ["*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

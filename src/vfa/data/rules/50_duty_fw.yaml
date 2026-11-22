@@ -1,0 +1,119 @@
+# Duty headroom and field weakening.
+- id: DUTY-001
+  title: Max duty differs from the firmware default 95%
+  severity: warning
+  evidence: Source
+  category: duty
+  crosscheck: duty_vs_fw
+  fail: mc.l_max_duty != 0.95
+  message: Maximum Duty Cycle is {mc.l_max_duty:.0%} (firmware default 95%). Duty pushback and Refloat's wheelslip logic are judged against it.
+  rationale: The firmware cannot modulate beyond l_max_duty; Refloat reads it for its wheelslip handling (l_max_duty - 5%). The knowledge base expects the 95% default.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L100", "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/motor/mcconf_default.h"]
+- id: DUTY-002
+  title: Duty pushback threshold within 5% of max duty
+  severity: critical
+  evidence: Analysis
+  category: duty
+  crosscheck: duty_vs_fw
+  fail: rf.tiltback_duty >= duty.margin_point
+  message: Duty pushback starts at {rf.tiltback_duty:.0%}, within 5% of Maximum Duty Cycle {mc.l_max_duty:.0%}. When it starts there is almost no headroom left to accelerate the wheel.
+  rationale: Near max duty the board can cruise but cannot accelerate the wheel to recover pitch. Refloat's help text warns that reaching 95% causes a nosedive.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L100", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/main.c#L510", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: DUTY-003
+  title: Duty pushback above 85%
+  severity: warning
+  evidence: Comm
+  category: duty
+  crosscheck: duty_vs_fw
+  fail: rf.tiltback_duty > 0.85 and rf.tiltback_duty < duty.margin_point
+  message: Duty pushback starts at {rf.tiltback_duty:.0%}; the community margin is 80-85%.
+  rationale: Headroom is roughly (1 - duty) x V_bus and shrinks further with sag.
+  sources: [docs/knowledge-base.md §6]
+- id: DUTY-004
+  title: Field weakening above 50 A with duty pushback at 85% or higher
+  severity: critical
+  evidence: Analysis
+  category: duty
+  crosscheck: duty_vs_fw
+  fail: mc.foc_fw_current_max > 50 and rf.tiltback_duty >= 0.85
+  message: Field weakening {mc.foc_fw_current_max:.0f} A with duty pushback at {rf.tiltback_duty:.0%}. Once -Id is injected duty no longer reflects headroom, so the pushback comes too late.
+  rationale: FW makes duty an unfaithful headroom indicator and consumes part of the current budget.
+  sources: [docs/knowledge-base.md §6, docs/knowledge-base.md §7]
+- id: DUTY-005
+  title: Field weakening enabled with duty pushback above 80%
+  severity: warning
+  evidence: Comm
+  category: duty
+  crosscheck: duty_vs_fw
+  when: fw.enabled
+  fail: rf.tiltback_duty > 0.80 and not (mc.foc_fw_current_max > 50 and rf.tiltback_duty >= 0.85)
+  message: Field weakening is on ({mc.foc_fw_current_max:.0f} A) and duty pushback is {rf.tiltback_duty:.0%}; community practice lowers pushback to about 80% with FW.
+  rationale: See DUTY-004.
+  sources: [docs/knowledge-base.md §6]
+- id: DUTY-006
+  title: Field weakening starts at or after duty pushback
+  severity: warning
+  evidence: Comm
+  category: duty
+  crosscheck: duty_vs_fw
+  when: fw.enabled
+  fail: mc.foc_fw_duty_start >= rf.tiltback_duty
+  message: FW starts at {mc.foc_fw_duty_start:.0%} duty, not below the {rf.tiltback_duty:.0%} pushback threshold.
+  rationale: FW is meant to extend headroom before the rider is warned, not after.
+  sources: [docs/knowledge-base.md §7.5]
+- id: DUTY-007
+  title: Field weakening current large relative to motor max
+  severity: warning
+  evidence: Comm
+  category: duty
+  crosscheck: duty_vs_fw
+  when: fw.enabled
+  fail: fw.fraction_of_motor_max > 0.5
+  message: FW current {mc.foc_fw_current_max:.0f} A is {fw.fraction_of_motor_max:.0%} of motor max {mc.l_current_max:.0f} A (guidance 30-50%).
+  rationale: Id consumes part of the current budget, leaving less q-axis torque for recovery.
+  sources: [docs/knowledge-base.md §7.5]
+- id: DUTY-008
+  title: Field weakening with a charge-only BMS
+  severity: warning
+  evidence: Analysis
+  category: duty
+  crosscheck: duty_vs_fw
+  when: fw.enabled
+  fail: meta.charge_only_bms
+  message: FW is on with a {meta.bms} BMS. If FW is withdrawn suddenly (fault, reset, foldback), back-EMF above the bus forces uncontrolled regen, worst at full charge, and nothing interrupts it.
+  rationale: Knowledge base §6 item 3.
+  sources: [docs/knowledge-base.md §6]
+- id: DUTY-009
+  title: Field weakening values need re-validation on 7.00
+  severity: info
+  evidence: Dev
+  category: duty
+  crosscheck: duty_vs_fw
+  fail: fw.enabled
+  message: FW is on. Firmware 7.00 moved FW into the fast loop and combines FW and MTPA currents as max rather than sum; values carried over from 6.0x need re-validation.
+  rationale: Knowledge base §1, from the 7.00 changelog.
+  sources: [docs/knowledge-base.md §1]
+- id: DUTY-010
+  title: High-sag pack with duty pushback above 80%
+  severity: warning
+  evidence: Analysis
+  category: duty
+  crosscheck: duty_vs_fw
+  fail: duty.sag_fraction > 0.08 and rf.tiltback_duty > 0.80
+  message: >-
+    At Battery Current Max {mc.l_in_current_max:.0f} A this pack (DCR up to
+    {pack.dcr_ohm_max:.3f} ohm from the cell rating) can sag by up to {duty.sag_v:.1f} V,
+    {duty.sag_fraction:.0%} of full charge, which raises duty at a given speed. Duty
+    pushback is {rf.tiltback_duty:.0%}.
+  rationale: Low charge + hill + speed is the dangerous corner, and battery current max binds there too. Board B (1P) is the headroom-critical board.
+  sources: [docs/knowledge-base.md §2, docs/knowledge-base.md §6]
+- id: DUTY-011
+  title: Duty pushback has no effect
+  severity: critical
+  evidence: Source
+  category: duty
+  crosscheck: duty_vs_fw
+  fail: rf.tiltback_duty_angle == 0 or rf.tiltback_duty_speed == 0 or rf.tiltback_duty >= 1
+  message: Duty pushback angle {rf.tiltback_duty_angle} deg, speed {rf.tiltback_duty_speed} deg/s, threshold {rf.tiltback_duty:.0%}; it will not raise the nose.
+  rationale: Setting the threshold to 100% disables duty pushback (Refloat help text).
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/main.c#L510-L515", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]

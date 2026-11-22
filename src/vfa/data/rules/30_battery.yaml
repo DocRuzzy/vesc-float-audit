@@ -1,0 +1,187 @@
+# Battery limits, cutoffs and LV/HV pushback.
+# Refloat tiltback_lv/hv below 10 V are per-cell and multiplied by
+# si_battery_cells; 10 V and above are absolute (refloat src/motor_data.c:78-90).
+- id: BAT-001
+  title: Battery current max above the pack's continuous rating
+  severity: critical
+  evidence: Analysis
+  category: battery
+  crosscheck: cell_vs_battery
+  fail: mc.l_in_current_max > pack.continuous_a
+  message: Battery Current Max {mc.l_in_current_max:.0f} A exceeds {pack.p}P x {cell.continuous_discharge_a:.0f} A = {pack.continuous_a:.0f} A, the datasheet continuous ceiling.
+  rationale: Battery current binds at high duty, exactly where recovery torque is needed; a limit the pack cannot supply means deep sag at the worst moment.
+  sources: [docs/knowledge-base.md §2, docs/knowledge-base.md §7.3]
+- id: BAT-002
+  title: Battery current max above the durable figure for this pack
+  severity: warning
+  evidence: Analysis
+  category: battery
+  crosscheck: cell_vs_battery
+  fail: mc.l_in_current_max > pack.durable_a and mc.l_in_current_max <= pack.continuous_a
+  message: Battery Current Max {mc.l_in_current_max:.0f} A is above {pack.durable_a:.0f} A ({cell.durable_derate:.0%} of the {pack.continuous_a:.0f} A continuous rating).
+  rationale: The knowledge base treats about 75-83% of the continuous rating as durable; the rest is a short-peak allowance.
+  sources: [docs/knowledge-base.md §2]
+- id: BAT-003
+  title: Regen limit above the pack's pulse allowance
+  severity: warning
+  evidence: Analysis
+  category: battery
+  crosscheck: cell_vs_battery
+  fail: abs(mc.l_in_current_min) > pack.regen_pulse_a
+  message: Battery Current Max Regen {mc.l_in_current_min:.0f} A exceeds {pack.regen_pulse_a:.0f} A ({pack.p}P x {cell.charge_max_a} A max charge x {cell.regen_pulse_factor}).
+  rationale: Regen charges the cells; with a charge-only BMS nothing else limits it.
+  sources: [docs/knowledge-base.md §7.3]
+- id: BAT-004
+  title: Regen limit above the cells' rated max charge current
+  severity: info
+  evidence: Analysis
+  category: battery
+  crosscheck: cell_vs_battery
+  fail: abs(mc.l_in_current_min) > pack.charge_max_a and abs(mc.l_in_current_min) <= pack.regen_pulse_a
+  message: Regen {mc.l_in_current_min:.0f} A is above the rated {pack.charge_max_a:.1f} A charge current; acceptable only as short pulses.
+  rationale: Short regen pulses above the rated charge current are usually tolerated; sustained descents are not.
+  sources: [docs/knowledge-base.md §2]
+- id: BAT-005
+  title: Voltage cutoff end below the cell minimum
+  severity: critical
+  evidence: Analysis
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: mc.l_battery_cut_end < pack.empty_v - 0.05
+  message: Cutoff end {mc.l_battery_cut_end:.1f} V ({thr.l_battery_cut_end_per_cell:.2f} V/cell) is below the cell minimum {cell.v_min} V/cell ({pack.empty_v:.1f} V). The firmware default is 8 V.
+  rationale: With a charge-only BMS the VESC cutoffs and LV pushback are the only over-discharge protection.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/motor/mcconf_default.h", docs/knowledge-base.md §2]
+- id: BAT-006
+  title: Voltage cutoffs left at the setup wizard's cautious values
+  severity: critical
+  evidence: Source
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: abs(thr.l_battery_cut_start_per_cell - 3.4) < 0.02 and abs(thr.l_battery_cut_end_per_cell - 3.0) < 0.02
+  message: Cutoffs {mc.l_battery_cut_start:.1f}/{mc.l_battery_cut_end:.1f} V are 3.4/3.0 V per cell, which is what the setup wizard writes for every usage except "Balance". Current foldback then starts under normal sag.
+  rationale: >-
+    vesc_tool Utility::setBatteryCutCanFromCurrentConfig writes 3.4/3.0 V/cell when
+    "cautious" (Generic, E-Skate, Propeller and the desktop detect-all dialog) and
+    2.7/2.5 V/cell for the Balance preset. Foldback that begins at 3.4 V/cell cuts
+    current during sag on a partly charged pack, which is reported to cause nosedives [Comm].
+  sources: ["https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/utility.cpp#L825-L862", "https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/mobile/SetupWizardFoc.qml#L121-L132", "https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/widgets/detectallfocdialog.cpp#L306"]
+- id: BAT-007
+  title: Cutoff start high enough to fold back current under sag
+  severity: warning
+  evidence: Comm
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: thr.l_battery_cut_start_per_cell > 3.2 and not (abs(thr.l_battery_cut_start_per_cell - 3.4) < 0.02 and abs(thr.l_battery_cut_end_per_cell - 3.0) < 0.02)
+  message: Cutoff start {thr.l_battery_cut_start_per_cell:.2f} V/cell; the community figure is 2.7 V/cell start, 2.5 V/cell end.
+  rationale: Foldback is current limiting; if it starts while sag is common it removes torque mid-ride.
+  sources: [docs/knowledge-base.md §2]
+- id: BAT-008
+  title: Cutoff start is not above cutoff end
+  severity: critical
+  evidence: Analysis
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: mc.l_battery_cut_start <= mc.l_battery_cut_end
+  message: Cutoff start {mc.l_battery_cut_start:.1f} V is not above cutoff end {mc.l_battery_cut_end:.1f} V, so there is no foldback ramp, only a hard cut.
+  rationale: The cutoffs define a linear current foldback between start and end.
+  sources: [docs/knowledge-base.md §3]
+- id: BAT-009
+  title: LV pushback at or below the cutoff start
+  severity: critical
+  evidence: Source
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: thr.lv_v <= mc.l_battery_cut_start
+  message: LV pushback triggers at {thr.lv_v:.1f} V (tiltback_lv {rf.tiltback_lv}), not above cutoff start {mc.l_battery_cut_start:.1f} V. Current is already folding back before the rider is warned.
+  rationale: Refloat's own help text says the cutoffs must be below the LV pushback threshold.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml", "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L78-L90"]
+- id: BAT-010
+  title: LV pushback effectively disabled
+  severity: critical
+  evidence: Source
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: thr.lv_v < pack.empty_v
+  message: LV pushback is at {thr.lv_v:.1f} V, below the empty pack voltage {pack.empty_v:.1f} V; it will never trigger.
+  rationale: LV pushback set to 0 V or similar leaves the cutoffs as the only warning.
+  sources: ["https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/motor_data.c#L78-L90", docs/knowledge-base.md §5]
+- id: BAT-011
+  title: LV pushback below 3.0 V/cell with a charge-only BMS
+  severity: warning
+  evidence: Comm
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  when: meta.charge_only_bms
+  fail: thr.lv_v_per_cell < 2.95 and thr.lv_v >= pack.empty_v
+  message: LV pushback is {thr.lv_v_per_cell:.2f} V/cell ({thr.lv_v:.1f} V). With a charge-only BMS a weak cell group is invisible, so the pack average hides it.
+  rationale: Pack voltage / S hides a weak group; the knowledge base recommends conservative LV pushback (3.0 V/cell, Refloat's default) on these packs.
+  sources: [docs/knowledge-base.md §2]
+- id: BAT-012
+  title: HV pushback above the controller's maximum operating voltage
+  severity: critical
+  evidence: Analysis
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: thr.hv_v > hw.vendor.max_operating_v
+  message: HV pushback at {thr.hv_v:.1f} V (tiltback_hv {rf.tiltback_hv}) is above the controller's {hw.vendor.max_operating_v:.0f} V maximum. Refloat's 4.3 V/cell default gives {pack.s} x 4.3 V here.
+  rationale: Pushback must engage before the bus reaches the controller's ceiling during regen.
+  sources: [docs/knowledge-base.md §2, "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: BAT-013
+  title: HV pushback at or above the firmware overvoltage fault
+  severity: critical
+  evidence: Source
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: thr.hv_v >= mc.l_max_vin
+  message: HV pushback {thr.hv_v:.1f} V is not below Maximum Input Voltage {mc.l_max_vin:.1f} V; the controller faults (motor off) before pushback can warn.
+  rationale: l_max_vin is the overvoltage fault threshold.
+  sources: ["https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/res/config/7.00/parameters_mcconf.xml"]
+- id: BAT-014
+  title: HV pushback below full-charge voltage
+  severity: warning
+  evidence: Analysis
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: thr.hv_v < pack.full_v
+  message: HV pushback {thr.hv_v:.1f} V is below full charge {pack.full_v:.1f} V; pushback is active straight off the charger.
+  rationale: HV pushback should sit at or above full charge so it signals regen overvoltage, not normal state.
+  sources: [docs/knowledge-base.md §7.3]
+- id: BAT-015
+  title: HV pushback effectively disabled
+  severity: critical
+  evidence: Analysis
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: thr.hv_v > hw.fw_limits.vin_max
+  message: HV pushback at {thr.hv_v:.1f} V is above anything the controller can see ({hw.fw_limits.vin_max:.0f} V firmware limit). With a {meta.bms} BMS it is the only overcharge guard during regen.
+  rationale: Values such as 200 V have been seen in real builds. Nothing interrupts regen on a charge-only BMS.
+  sources: [docs/knowledge-base.md §2, docs/knowledge-base.md §5]
+- id: BAT-016
+  title: Undervoltage fault above the cutoff range
+  severity: critical
+  evidence: Analysis
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: mc.l_min_vin >= mc.l_battery_cut_end
+  message: Minimum Input Voltage {mc.l_min_vin:.1f} V is not below cutoff end {mc.l_battery_cut_end:.1f} V; under sag the controller faults (motor off) before the foldback completes.
+  rationale: l_min_vin is a fault, not a foldback. Sag on a 1P pack makes it reachable.
+  sources: ["https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/res/config/7.00/parameters_mcconf.xml"]
+- id: BAT-017
+  title: Cutoff end below the controller's recommended minimum voltage
+  severity: warning
+  evidence: UNVERIFIED
+  category: battery
+  crosscheck: cutoffs_vs_tiltback
+  fail: mc.l_battery_cut_end < hw.vendor.min_recommended_v
+  message: Cutoff end {mc.l_battery_cut_end:.1f} V is below the controller's recommended minimum {hw.vendor.min_recommended_v:.0f} V.
+  rationale: Vendor figure not re-read.
+  sources: [docs/knowledge-base.md §2]
+- id: BAT-018
+  title: Regen is cut at high battery voltage
+  severity: warning
+  evidence: Analysis
+  category: battery
+  fail: mc.l_battery_regen_cut_start <= pack.full_v + 2
+  message: Battery Voltage Regen Cutoff Start is {mc.l_battery_regen_cut_start:.1f} V (full charge {pack.full_v:.1f} V). Braking current is reduced near full charge, when a descent most needs it.
+  rationale: On a balance board, regen is braking torque. The firmware default (1000 V) disables this cut.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/motor/mcconf_default.h"]

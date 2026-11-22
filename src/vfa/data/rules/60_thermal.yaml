@@ -1,0 +1,75 @@
+- id: THM-001
+  title: Acceleration temperature decrease above 0
+  severity: critical
+  evidence: Source
+  category: thermal
+  fail: mc.l_temp_accel_dec > 0
+  message: >-
+    Acceleration Temperature Decrease is {mc.l_temp_accel_dec:.0%} (firmware default 15%).
+    Acceleration current starts folding back at {thm.fet_accel_start:.0f} degC FET /
+    {thm.motor_accel_start:.0f} degC motor instead of {mc.l_temp_fet_start} / {mc.l_temp_motor_start}.
+  rationale: >-
+    The firmware maps the accel limit's temperature window towards 25 degC by this
+    fraction so braking keeps more headroom. On a balance board acceleration torque is
+    recovery torque, so power is lost before reaching over-temperature. Community setting
+    is 0 for balance vehicles.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/motor/mc_interface.c#L2390-L2420", "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/motor/mcconf_default.h#L113-L114"]
+- id: THM-002
+  title: MOSFET temperature cutoff end close to start
+  severity: critical
+  evidence: Comm
+  category: thermal
+  fail: mc.l_temp_fet_end - mc.l_temp_fet_start < 5
+  message: MOSFET foldback runs from {mc.l_temp_fet_start} to {mc.l_temp_fet_end} degC, so it is nearly a step.
+  rationale: A narrow window makes foldback abrupt mid-ride.
+  sources: [docs/knowledge-base.md §3, docs/knowledge-base.md §7]
+- id: THM-003
+  title: Motor temperature cutoff end close to start
+  severity: critical
+  evidence: Comm
+  category: thermal
+  fail: mc.l_temp_motor_end - mc.l_temp_motor_start < 5
+  message: Motor foldback runs from {mc.l_temp_motor_start} to {mc.l_temp_motor_end} degC, so it is nearly a step.
+  rationale: See THM-002.
+  sources: [docs/knowledge-base.md §3]
+- id: THM-004
+  title: Temperature foldback windows narrower than 10 degC
+  severity: warning
+  evidence: Comm
+  category: thermal
+  fail: (mc.l_temp_fet_end - mc.l_temp_fet_start < 10 and mc.l_temp_fet_end - mc.l_temp_fet_start >= 5) or (mc.l_temp_motor_end - mc.l_temp_motor_start < 10 and mc.l_temp_motor_end - mc.l_temp_motor_start >= 5)
+  message: "Foldback windows: FET {mc.l_temp_fet_start}-{mc.l_temp_fet_end} degC, motor {mc.l_temp_motor_start}-{mc.l_temp_motor_end} degC. The firmware default is 85-100 (15 degC)."
+  rationale: Wide start/end gaps keep foldback gradual.
+  sources: [docs/knowledge-base.md §7.6]
+- id: THM-005
+  title: MOSFET temperature limits above the controller's foldback figures
+  severity: warning
+  evidence: UNVERIFIED
+  category: thermal
+  when: meta.hardware == "thor301"
+  fail: mc.l_temp_fet_start > 80 or mc.l_temp_fet_end > 100
+  message: FET foldback {mc.l_temp_fet_start}-{mc.l_temp_fet_end} degC; the Thor 301 figures are foldback above 80 degC and cutoff at 100 degC.
+  rationale: Vendor thermal figures, not re-read from the vendor.
+  sources: [docs/knowledge-base.md §2]
+- id: THM-006
+  title: Battery temperature unmonitored
+  severity: warning
+  evidence: Analysis
+  category: thermal
+  fail: not get(meta.battery_temp_monitored, false)
+  message: Nothing on file reads battery temperature (meta.battery_temp_monitored is not true). With a {meta.bms} BMS a hot pack is not detected.
+  rationale: >-
+    Neither stock firmware nor stock Refloat reads an ADC3 thermistor as battery
+    temperature; Refloat's BMS temperature checks only work with BMS integration
+    (bms.enabled), which needs a CAN BMS.
+  sources: [docs/knowledge-base.md §2, "https://github.com/lukash/refloat/blob/a2b55d96f508653b0436b21410100aaf91f14b04/src/conf/settings.xml"]
+- id: THM-007
+  title: Temperature fault disabled by a high cutoff end (rflt-xtras)
+  severity: info
+  evidence: Dev
+  category: thermal
+  when: imu.variant == "rflt-xtras-0.5"
+  fail: mc.l_temp_fet_end >= 100
+  message: On rflt-xtras, Temp Cutoff End {mc.l_temp_fet_end} degC >= 100 disables the firmware temperature fault; the rider relies on package alerts.
+  rationale: Knowledge base §6, from the rflt-xtras release notes.
+  sources: [docs/knowledge-base.md §6]

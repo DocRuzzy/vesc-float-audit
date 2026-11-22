@@ -1,0 +1,16 @@
+# Molicel INR-21700-P45B. molicel.com could not be reached from the build
+# environment, so these are the knowledge-base figures, unconfirmed.
+id: molicel_p45b
+name: Molicel INR-21700-P45B
+capacity_ah: {value: 4.5, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2 (datasheet not re-read)"}
+continuous_discharge_a: {value: 45.0, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+charge_standard_a: {value: 4.5, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+charge_max_a: {value: 13.5, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+v_max: {value: 4.2, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+v_min: {value: 2.5, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2"}
+dcr_ohm_max: {value: 0.015, evidence: UNVERIFIED, source: "docs/knowledge-base.md §2 (<15 mOhm at 10 s)"}
+# Fraction of the continuous rating treated as a durable ride limit. This is
+# the knowledge base's 65-75 A on 2 x 45 A, i.e. about 0.75-0.83. [Analysis]
+durable_derate: {value: 0.8, evidence: Analysis, source: "docs/knowledge-base.md §2 Board A derived settings"}
+# Allowance over rated max charge for short regen pulses. [Analysis]
+regen_pulse_factor: {value: 1.85, evidence: Analysis, source: "docs/knowledge-base.md §7.3 (1.5-1.85)"}
