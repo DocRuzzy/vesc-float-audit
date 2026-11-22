@@ -75,6 +75,13 @@ Float Control can export each config as XML. These files load, but they are
 not VESC Tool's format. The files seen so far have ConfigVersion 2, about 131
 of 211 mcconf and 41 of 122 appconf parameters, 6.05-era mcconf names, a
 pre-1.3 Refloat name, no `config_name` signature, and
-`haptic.duty_solid_offset` apparently in percent. Set `export_source` to
-`float_control`; the report then carries CFG-004, and rules that need missing
-parameters are reported as not evaluated. Prefer VESC Tool exports.
+`haptic.duty_solid_offset` in percent. Set `export_source` to `float_control`;
+the report then carries CFG-004, and rules that need missing parameters are
+reported as not evaluated. Prefer VESC Tool exports.
+
+Checked against a VESC Tool export of the same board (2026-11-22): all 131
+mcconf and 41 appconf values Float Control includes matched exactly, as did
+every Refloat tuning value. The only differences were
+`haptic.duty_solid_offset` (percent instead of a fraction) and six
+`hardware.leds.*` fields, which Float Control reported wrongly. So the values it
+does export can be trusted for an audit; what it leaves out cannot be inferred.
