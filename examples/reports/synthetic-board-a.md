@@ -19,8 +19,8 @@ Generated 2026-11-22 by vesc-float-audit from `examples/synthetic-board-a`.
 - 4 warning(s), 4 info note(s)
 - 0 rule(s) not evaluated (missing inputs)
 - 23 rule(s) without a finding but resting on unconfirmed inputs
-- 56 rule(s) without a finding on confirmed inputs
-- 22 rule(s) not applicable
+- 57 rule(s) without a finding on confirmed inputs
+- 24 rule(s) not applicable
 
 ## Red flags
 
@@ -309,7 +309,7 @@ These rules did not fire, but at least one input is UNVERIFIED or a community/an
 
 ## No finding on confirmed inputs
 
-BAT-006, BAT-008, BAT-009, BAT-013, BAT-015, BAT-016, CUR-001, CUR-004, CUR-008, CUR-009, DUTY-004, DUTY-011, FP-001, FP-004, ID-002, ID-003, ID-008, IMU-001, THM-001, THM-002, THM-003, TUNE-008, VER-001, BAT-007, CFG-001, CFG-002, CFG-003, CFG-004, CUR-002, CUR-006, DUTY-001, FP-002, FP-003, ID-009, IMU-002, IMU-004, IMU-007, IMU-008, IMU-009, IMU-013, THM-004, TUNE-002, TUNE-003, TUNE-004, TUNE-006, VER-003, VER-004, VER-005, DUTY-009, IMU-005, IMU-006, TUNE-005, TUNE-007, TUNE-009, TUNE-010, VER-008
+BAT-006, BAT-008, BAT-009, BAT-013, BAT-015, BAT-016, CFG-007, CUR-001, CUR-004, CUR-008, CUR-009, DUTY-004, DUTY-011, FP-001, FP-004, ID-002, ID-003, ID-008, IMU-001, THM-001, THM-002, THM-003, TUNE-008, VER-001, BAT-007, CFG-001, CFG-002, CFG-003, CFG-004, CUR-002, CUR-006, DUTY-001, FP-002, FP-003, ID-009, IMU-002, IMU-004, IMU-007, IMU-008, IMU-009, IMU-013, THM-004, TUNE-002, TUNE-003, TUNE-004, TUNE-006, VER-003, VER-004, VER-005, DUTY-009, IMU-005, IMU-006, TUNE-005, TUNE-007, TUNE-009, TUNE-010, VER-008
 
 ## Diff against defaults
 

@@ -57,3 +57,12 @@ def test_compare(tmp_path):
     assert "different hardware" in md
     assert re.search(r"`l_in_current_max` \| 70 A \| 38 A", md)
     assert "### Cell rating vs battery current" in md
+
+
+def test_compare_flags_identical_configs(tmp_path):
+    a = audit(tmp_path, name="a1")
+    b = audit(tmp_path, name="a2")
+    ra = sorted(a[2].values(), key=lambda r: r.rule.id)
+    rb = sorted(b[2].values(), key=lambda r: r.rule.id)
+    md = compare.render(a[0], a[1], ra, b[0], b[1], rb, today="2026-11-22")
+    assert "identical motor configs" in md

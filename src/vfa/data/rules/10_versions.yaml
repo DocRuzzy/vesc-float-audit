@@ -143,3 +143,50 @@
     name (leds.status.duty_threshold), so they are Float Control's own schema rather than a
     dump of the board's config.
   sources: ["https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/vesc_tool.pro#L10", "https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/configparams.cpp#L1024-L1060"]
+- id: CFG-005
+  title: hw_status hardware name does not match the hardware profile
+  severity: critical
+  evidence: Source
+  category: versions
+  when: has(hws.hardware)
+  fail: not hws.hardware_matches
+  message: >-
+    The pasted hw_status reports hardware "{hws.hardware}", but the bundle is audited as
+    {hw.name} (firmware target {hw.fw_hw_name}). Either meta.json names the wrong hardware,
+    or hw_status came from another controller. Limits in this report may not apply.
+  rationale: The firmware prints HW_NAME from the hardware config it was built for.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/terminal.c#L601-L606"]
+- id: CFG-006
+  title: Motor config is not from the controller that printed hw_status
+  severity: critical
+  evidence: Source
+  category: versions
+  when: has(hws.offset_max_dev)
+  fail: hws.offset_max_dev > hws.offset_tolerance
+  message: >-
+    The FOC current offsets in mcconf.xml differ from those hw_status printed by up to
+    {hws.offset_max_dev:.2f} counts (tolerance {hws.offset_tolerance} counts; 2 when the
+    controller recalibrates offsets at boot or the export does not say, 0.05 otherwise). Offsets are measured per controller, so this mcconf was
+    saved from another board, or VESC Tool still held an earlier board's config when it was
+    saved. Re-read the motor configuration from this board and export again; do not act on
+    the motor-config findings below.
+  rationale: >-
+    The offsets are calibrated per controller and stored in mcconf; hw_status prints the live
+    values with two decimals (terminal.c:601-640). With boot calibration enabled the live
+    values drift slightly from the stored ones (mcpwm_foc.c:489). A match within tolerance is
+    supporting evidence, not proof; a large mismatch is strong evidence of a mixed-up export. VESC Tool's Save XML writes whatever config
+    it holds in memory, which may be from a previously connected board.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/terminal.c#L601-L640", "https://github.com/vedderb/vesc_tool/blob/6528c4e2a963e86ae4104737ddf7c76ffc987d84/mainwindow.cpp#L1184"]
+- id: CFG-007
+  title: Motor config could not have been accepted by this hardware's firmware
+  severity: critical
+  evidence: Source
+  category: versions
+  fail: mc.l_max_vin > hw.fw_limits.vin_max or mc.l_min_vin < hw.fw_limits.vin_min
+  message: >-
+    mcconf.xml has input voltage limits {mc.l_min_vin:.0f}-{mc.l_max_vin:.0f} V, outside the
+    {hw.fw_limits.vin_min:.0f}-{hw.fw_limits.vin_max:.0f} V the {hw.fw_hw_name} firmware accepts.
+    It is probably from another controller (or a no-limits build). Check the export before
+    acting on any motor-config finding.
+  rationale: HW_LIM_VIN bounds what this firmware stores; a value outside it points to a mixed-up export.
+  sources: ["https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/Ubox/100v/hw_ubox_100_core.h#L283-L289", "https://github.com/vedderb/bldc/blob/e877eaead23e23cc0e160302d75554eaeb2c98d0/hwconf/fungineers/301/hw_Thor301_core.h#L249"]

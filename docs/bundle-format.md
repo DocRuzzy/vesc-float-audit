@@ -54,6 +54,7 @@ definition file rather than a saved configuration, is rejected.
 | `tune_conversions_from_1_2` | no | how many times "Convert from 1.2" was applied to this tune; `null` if unknown |
 | `battery_temp_monitored` | no | `true` only if something actually reads pack temperature |
 | `measured.control_loop_hz` | no | Control Loop Frequency from Refloat's realtime data |
+| `hw_status` | no | the terminal's `hw_status` output, pasted as one string or a list of lines. Checks the hardware name (CFG-005) and that `mcconf.xml` came from this controller via its current offsets (CFG-006). Blank the UUID line if you prefer |
 | `export_source` | no | `vesc_tool` (default) or `float_control`. Anything but VESC Tool's Save XML raises CFG-004 |
 
 Profiles live in `src/vfa/data/profiles/{hardware,cells,motors}/`. Add one by

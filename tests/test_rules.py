@@ -26,7 +26,8 @@ def test_every_rule_name_resolves(tmp_path):
            "1000;80;50;20;8000;0.55;0;40\n")
     _, ns, _ = audit(tmp_path, logs={"rt.csv": log},
                      meta={"measured": {"control_loop_hz": 830}, "tune_conversions_from_1_2": 1,
-                           "battery_temp_monitored": False})
+                           "battery_temp_monitored": False,
+                           "hw_status": "Firmware: 7.0\nHardware: Thor301\nFOC Current Offsets: 2048.00 2048.00 2048.00"})
     known = set(ns.values)
     for r in engine.load_rules():
         unknown = r.inputs() - known
@@ -180,3 +181,32 @@ def test_pole_error_messages(tmp_path):
 def test_imu003_not_applicable_on_stock_lsm6ds3(tmp_path):
     _, _, res = audit(tmp_path)
     assert res["IMU-003"].outcome == "not_applicable"
+
+
+HWS_A = """Firmware: 7.0
+Hardware: Thor301
+FOC Current Offsets: 2046.86 2018.48 2053.77"""
+
+
+def test_hw_status_checks(tmp_path):
+    mc = {"foc_offsets_current__0": 2046.862, "foc_offsets_current__1": 2018.485, "foc_offsets_current__2": 2053.775}
+    _, _, ok = audit(tmp_path, name="ok", mc=mc, meta={"hw_status": HWS_A})
+    assert not ok["CFG-005"].fired and not ok["CFG-006"].fired
+    _, _, bad = audit(tmp_path, name="bad", mc=dict(mc, foc_offsets_current__1=2041.0), meta={"hw_status": HWS_A})
+    assert bad["CFG-006"].fired
+    # Boot calibration on: small drift (0.3 counts) is tolerated, a different board is not.
+    drift = dict(mc, foc_offsets_current__1=2018.78, foc_offsets_cal_mode=1)
+    _, _, d = audit(tmp_path, name="drift", mc=drift, meta={"hw_status": HWS_A})
+    assert not d["CFG-006"].fired
+    _, _, d2 = audit(tmp_path, name="drift2", mc=dict(drift, foc_offsets_current__1=2046.5), meta={"hw_status": HWS_A})
+    assert d2["CFG-006"].fired
+    _, _, wrong = audit(tmp_path, board="b", name="w", meta={"hw_status": HWS_A})
+    assert wrong["CFG-005"].fired
+    _, _, none = audit(tmp_path, name="n")
+    assert none["CFG-005"].outcome == "not_applicable"
+
+
+def test_board_a_mcconf_in_board_b_bundle_is_caught(tmp_path):
+    # Board A's mcconf (97 V max, 38 V min) saved into a Ubox bundle.
+    _, _, res = audit(tmp_path, board="b", mc={"l_max_vin": 97.0, "l_min_vin": 38.0, "si_battery_cells": 20})
+    assert res["CFG-007"].fired and res["ID-002"].fired

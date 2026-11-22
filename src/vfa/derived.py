@@ -96,6 +96,7 @@ def build(b: Bundle) -> Namespace:
         ns.set(f"cfg.{prefix}_config_version", cfg.config_version, "config")
     ns.set("meta.export_source", m.get("export_source", "vesc_tool"), "owner-reported", "meta.json")
 
+    _hw_status(ns, m)
     _versions(ns, m)
     _pack(ns, m)
     _thermal(ns)
@@ -107,6 +108,44 @@ def build(b: Bundle) -> Namespace:
     _misc(ns)
     _log_metrics(ns, b)
     return ns
+
+
+_HW_RE = re.compile(r"^\s*Hardware:\s*(\S+)", re.M)
+_FW_RE = re.compile(r"^\s*Firmware:\s*([\d.]+)", re.M)
+_OFS_RE = re.compile(r"^\s*FOC Current Offsets:\s*([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)", re.M)
+
+
+def _hw_status(ns: Namespace, m):
+    """Parse terminal `hw_status` output pasted into meta.json (bldc terminal.c:601-640)."""
+    text = m.get("hw_status")
+    if not text:
+        return
+    if isinstance(text, list):
+        text = "\n".join(text)
+    src = "hw_status (terminal.c:601-640)"
+    hw = _HW_RE.search(text)
+    fw = _FW_RE.search(text)
+    ofs = _OFS_RE.search(text)
+    ns.set("hws.hardware", hw.group(1) if hw else None, "owner-reported", src)
+    ns.set("hws.firmware", fw.group(1) if fw else None, "owner-reported", src)
+    ns.set("hws.hardware_matches", (hw.group(1) == ns.values.get("hw.fw_hw_name")) if hw else None,
+           "owner-reported", src, deps=["hws.hardware", "hw.fw_hw_name"])
+    if ofs:
+        printed = [float(x) for x in ofs.groups()]
+        cfg = [ns.values.get(f"mc.foc_offsets_current__{i}") for i in range(3)]
+        if None not in cfg:
+            # hw_status prints live offsets with %.2f. With boot calibration on
+            # (foc_offsets_cal_mode bit 0, mcpwm_foc.c:489) they are re-measured at every
+            # power-on and drift a fraction of a count from the stored values; a different
+            # controller is typically off by many counts on some channel.
+            dev = max(abs(a - b) for a, b in zip(printed, cfg))
+            cal_mode = ns.values.get("mc.foc_offsets_cal_mode")
+            # Unknown (e.g. a Float Control export without the field): be lenient.
+            boot_cal = cal_mode is None or bool(int(cal_mode) & 1)
+            ns.set("hws.offset_max_dev", dev, "owner-reported", src,
+                   deps=[f"mc.foc_offsets_current__{i}" for i in range(3)])
+            ns.set("hws.offset_tolerance", 2.0 if boot_cal else 0.05, "Source",
+                   "bldc motor/mcpwm_foc.c:489", deps=["mc.foc_offsets_cal_mode"])
 
 
 def _versions(ns: Namespace, m):

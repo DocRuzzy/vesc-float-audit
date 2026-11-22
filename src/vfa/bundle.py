@@ -20,6 +20,7 @@ meta.json fields (see docs/bundle-format.md):
   battery_temp_monitored      bool or null
   measured          {control_loop_hz: number}  (from Refloat realtime data)
   export_source     "vesc_tool" (default) | "float_control" | free text
+  hw_status         terminal `hw_status` output pasted as a string (or list of lines)
 """
 from __future__ import annotations
 

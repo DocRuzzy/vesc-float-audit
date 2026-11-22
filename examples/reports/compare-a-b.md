@@ -4,6 +4,8 @@ Generated 2026-11-22 by vesc-float-audit.
 
 > The bundles are for different hardware (Fungineers Thor 301 vs Spintend Single Ubox 100V 100A). Limits and defaults differ; a difference below is not by itself a problem on either board.
 
+> **The two bundles have identical app configs.** Calibration values such as current offsets differ between controllers, so one export was probably saved while VESC Tool still held the other board's config. Re-read and re-export before trusting either audit.
+
 | | Example A (synthetic) | Example B (synthetic) |
 |---|---|---|
 | Hardware | Fungineers Thor 301 | Spintend Single Ubox 100V 100A |

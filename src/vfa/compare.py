@@ -33,6 +33,14 @@ def render(a: Bundle, na: Namespace, ra: list, b: Bundle, nb: Namespace, rb: lis
     if a.hw.id != b.hw.id:
         out += [f"> The bundles are for different hardware ({a.hw.name} vs {b.hw.name}). Limits and "
                 "defaults differ; a difference below is not by itself a problem on either board.", ""]
+    for kind, title in (("mcconf", "motor"), ("appconf", "app"), ("refloat", "Refloat")):
+        va = {"mcconf": a.mc, "appconf": a.app, "refloat": a.rf}[kind].values
+        vb = {"mcconf": b.mc, "appconf": b.app, "refloat": b.rf}[kind].values
+        if va and va == vb:
+            out += [f"> **The two bundles have identical {title} configs.** Calibration values such "
+                    "as current offsets differ between controllers, so one export was probably "
+                    "saved while VESC Tool still held the other board's config. Re-read and "
+                    "re-export before trusting either audit.", ""]
     out += ["| | " + la + " | " + lb + " |", "|---|---|---|",
             f"| Hardware | {a.hw.name} | {b.hw.name} |",
             f"| Firmware | {a.meta['firmware']} | {b.meta['firmware']} |",
