@@ -110,7 +110,7 @@ Rules that fired on either board:
 | Zero vector frequency | 25000.0 Hz | 25000.0 Hz |
 | App Mahony KP | 0.2 | 0.2 |
 | App Mahony KI | 0 | 0 |
-| Accel/gyro filter | 0 | 0 |
+| Accel/gyro filter | 1 | 1 |
 
 ### Flux linkage vs Refloat torque normalisation
 

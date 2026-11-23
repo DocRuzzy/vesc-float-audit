@@ -18,8 +18,8 @@ Generated 2026-11-22 by vesc-float-audit from `examples/synthetic-board-b`.
 - **0 red flag(s)** (critical findings)
 - 6 warning(s), 4 info note(s)
 - 10 rule(s) not evaluated (missing inputs)
-- 22 rule(s) without a finding but resting on unconfirmed inputs
-- 56 rule(s) without a finding on confirmed inputs
+- 21 rule(s) without a finding but resting on unconfirmed inputs
+- 59 rule(s) without a finding on confirmed inputs
 - 15 rule(s) not applicable
 
 ## Red flags
@@ -138,7 +138,7 @@ No critical rule fired. Check the *not evaluated* and *unconfirmed* lists before
 | Zero vector frequency | 25000.0 Hz | `mc.foc_f_zv` | config |
 | App Mahony KP | 0.2 | `app.imu_conf.mahony_kp` | config |
 | App Mahony KI | 0 | `app.imu_conf.mahony_ki` | config |
-| Accel/gyro filter | 0 | `app.imu_conf.filter` | config |
+| Accel/gyro filter | 1 | `app.imu_conf.filter` | config |
 
 | Rule | Severity | Outcome | Detail |
 |---|---|---|---|
@@ -179,7 +179,7 @@ Torque-scaled Refloat parameters. *1.2-equivalent* is the value a 1.2 tune would
 
 | Rule | Severity | Outcome | Detail |
 |---|---|---|---|
-| ID-001 Motor pole count differs from the motor profile | critical | no finding (unconfirmed inputs) | unconfirmed: `motor.poles` |
+| ID-001 Motor pole count differs from the motor profile | critical | no finding |  |
 | ID-003 Flux linkage is zero or missing; Refloat skips torque normalisation | critical | no finding |  |
 | ID-004 Flux linkage outside the motor profile's range | warning | NOT EVALUATED | missing: `motor.flux_wb_max`, `motor.flux_wb_min` |
 | VER-007 Tune conversion history unknown on a motor where it matters | warning | FIRED | k = 0.889 on this motor, and meta.json does not record whether this tune was converted from 1.2. If it was made on 1.2 and never converted, torque-scaled gains act 1.12x as strong (in phase amps) as on 1.2. If it was converted twice, they are k^2 off. |
@@ -320,7 +320,6 @@ These rules did not fire, but at least one input is UNVERIFIED or a community/an
 | CUR-010 Wattage limit below battery voltage x battery current | critical | `cell.v_max` [UNVERIFIED] |
 | CUR-011 ERPM limit within reach | critical | `cell.v_max` [UNVERIFIED], `erpm.no_load_max` [Analysis] |
 | DUTY-002 Duty pushback threshold within 5% of max duty | critical | `duty.margin_point` [Analysis] |
-| ID-001 Motor pole count differs from the motor profile | critical | `motor.poles` [UNVERIFIED] |
 | LOG-002 Logged duty within 5% of max duty | critical | `duty.margin_point` [Analysis], `log.duty_max` [UNVERIFIED] |
 | LOG-006 Logged voltage near the overvoltage fault | critical | `log.v_max` [UNVERIFIED] |
 | BAT-003 Regen limit above the pack's pulse allowance | warning | `cell.charge_max_a` [UNVERIFIED], `cell.regen_pulse_factor` [Analysis] |
@@ -339,7 +338,7 @@ These rules did not fire, but at least one input is UNVERIFIED or a community/an
 
 ## No finding on confirmed inputs
 
-BAT-006, BAT-008, BAT-009, BAT-013, BAT-015, BAT-016, CFG-007, CUR-001, CUR-004, CUR-008, CUR-009, DUTY-004, DUTY-011, FP-001, FP-004, ID-002, ID-003, ID-008, THM-001, THM-002, THM-003, TUNE-008, VER-001, BAT-007, CFG-001, CFG-002, CFG-003, CFG-004, CUR-002, CUR-006, DUTY-001, FP-002, FP-003, ID-009, IMU-003, IMU-004, IMU-007, IMU-008, IMU-009, IMU-013, THM-004, TUNE-002, TUNE-003, TUNE-004, TUNE-006, VER-003, VER-004, VER-005, DUTY-009, IMU-005, IMU-006, TUNE-005, TUNE-007, TUNE-009, TUNE-010, VER-008
+BAT-006, BAT-008, BAT-009, BAT-013, BAT-015, BAT-016, CFG-007, CFG-008, CFG-009, CUR-001, CUR-004, CUR-008, CUR-009, DUTY-004, DUTY-011, FP-001, FP-004, ID-001, ID-002, ID-003, ID-008, THM-001, THM-002, THM-003, TUNE-008, VER-001, BAT-007, CFG-001, CFG-002, CFG-003, CFG-004, CUR-002, CUR-006, DUTY-001, FP-002, FP-003, ID-009, IMU-003, IMU-004, IMU-007, IMU-008, IMU-009, IMU-013, THM-004, TUNE-002, TUNE-003, TUNE-004, TUNE-006, VER-003, VER-004, VER-005, DUTY-009, IMU-005, IMU-006, TUNE-005, TUNE-007, TUNE-009, TUNE-010, VER-008
 
 ## Diff against defaults
 

@@ -96,7 +96,7 @@
     <imu_conf.accel_offsets__0>0</imu_conf.accel_offsets__0>
     <imu_conf.accel_offsets__1>0</imu_conf.accel_offsets__1>
     <imu_conf.accel_offsets__2>0</imu_conf.accel_offsets__2>
-    <imu_conf.filter>0</imu_conf.filter>
+    <imu_conf.filter>1</imu_conf.filter>
     <imu_conf.gyro_lowpass_filter>0</imu_conf.gyro_lowpass_filter>
     <imu_conf.gyro_offsets__0>0</imu_conf.gyro_offsets__0>
     <imu_conf.gyro_offsets__1>0</imu_conf.gyro_offsets__1>

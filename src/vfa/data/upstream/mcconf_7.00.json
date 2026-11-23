@@ -3,7 +3,7 @@
   "bms.fwd_can_mode": {
    "c_define": "MCCONF_BMS_FWD_CAN_MODE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "Disabled",
     "USB Only",
@@ -198,7 +198,7 @@
   "comm_mode": {
    "c_define": "MCCONF_COMM_MODE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "Integrate",
     "Delay"
@@ -212,7 +212,7 @@
   "foc_cc_decoupling": {
    "c_define": "MCCONF_FOC_CC_DECOUPLING",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "FOC_CC_DECOUPLING_DISABLED",
     "FOC_CC_DECOUPLING_CROSS",
@@ -673,7 +673,7 @@
   "foc_hfi_samples": {
    "c_define": "MCCONF_FOC_HFI_SAMPLES",
    "default": 1,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "8",
     "16",
@@ -859,7 +859,7 @@
   "foc_observer_type": {
    "c_define": "MCCONF_FOC_OBSERVER_TYPE",
    "default": 3,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "FOC_OBSERVER_ORTEGA_ORIGINAL",
     "FOC_OBSERVER_MXLEMMING",
@@ -1115,8 +1115,8 @@
   },
   "foc_sat_comp_mode": {
    "c_define": "MCCONF_FOC_SAT_COMP_MODE",
-   "default": 2,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default": 0,
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "Disabled",
     "Factor",
@@ -1132,7 +1132,7 @@
   "foc_sensor_mode": {
    "c_define": "MCCONF_FOC_SENSOR_MODE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "Sensorless",
     "Encoder",
@@ -2165,7 +2165,7 @@
   "m_out_aux_mode": {
    "c_define": "MCCONF_M_OUT_AUX_MODE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "Off",
     "On after 2 seconds",
@@ -2329,7 +2329,7 @@
   "motor_type": {
    "c_define": "MCCONF_DEFAULT_MOTOR_TYPE",
    "default": 2,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "BLDC",
     "DC",
@@ -2461,7 +2461,7 @@
   "pwm_mode": {
    "c_define": "MCCONF_PWM_MODE",
    "default": 1,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "Nonsynchronous HISW",
     "Synchronous",
@@ -2564,7 +2564,7 @@
   "s_pid_speed_source": {
    "c_define": "MCCONF_S_PID_SPEED_SOURCE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "PLL",
     "Fast Estimator",
@@ -2579,7 +2579,7 @@
   "sensor_mode": {
    "c_define": "MCCONF_SENSOR_MODE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "Sensorless",
     "Sensored",
@@ -2620,7 +2620,7 @@
   "si_battery_type": {
    "c_define": "MCCONF_SI_BATTERY_TYPE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "BATTERY_TYPE_LIION_3_0__4_2",
     "BATTERY_TYPE_LIIRON_2_6__3_6",
@@ -2778,7 +2778,7 @@
   "sp_pid_loop_rate": {
    "c_define": "MCCONF_SP_PID_LOOP_RATE",
    "default": 5,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc motor/mcconf_default.h",
    "enum_names": [
     "25 Hz",
     "50 Hz",

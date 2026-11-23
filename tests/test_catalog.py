@@ -27,6 +27,14 @@ def test_firmware_defaults_from_headers():
     assert mc.get("foc_motor_flux_linkage")["xml_default"] != mc.default("foc_motor_flux_linkage")
 
 
+def test_enum_header_defaults_resolved_by_name():
+    # appconf_default.h: APPCONF_IMU_FILTER IMU_FILTER_MEDIUM; the vesc_tool XML says LOW.
+    app = cat.load("appconf")
+    assert app.default("imu_conf.filter") == 1
+    assert app.get("imu_conf.filter")["xml_default"] == 0
+    assert app.default("imu_conf.sample_rate_hz") == 200
+
+
 def test_sentinel_header_default_not_used():
     app = cat.load("appconf")
     p = app.get("controller_id")

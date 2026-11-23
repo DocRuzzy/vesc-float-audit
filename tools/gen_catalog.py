@@ -86,10 +86,22 @@ def parse_params(xml_path):
     return out
 
 
+def enum_index(p, text):
+    """Resolve a header enum constant (e.g. IMU_FILTER_MEDIUM, MOTOR_TYPE_FOC) to its index."""
+    names = p.get("enum_names") or []
+    t = text.strip()
+    for i, n in enumerate(names):
+        if n == t or t.upper().endswith("_" + n.upper().replace(" ", "_")):
+            return i
+    return None
+
+
 def apply_header_defaults(params, defs, header_label):
     for p in params.values():
         cd = p.get("c_define")
         val = to_number(defs[cd]) if cd and cd in defs else None
+        if val is None and cd in defs and p["type"] == "enum":
+            val = enum_index(p, defs[cd])
         in_range = val is not None and ("min" not in p or p["min"] <= val <= p["max"])
         if val is not None and not in_range:
             # e.g. APPCONF_CONTROLLER_ID -1: a "derive at boot" sentinel, never exported.

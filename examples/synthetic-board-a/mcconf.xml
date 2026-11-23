@@ -86,7 +86,7 @@
     <foc_pll_ki>30000</foc_pll_ki>
     <foc_pll_kp>2000</foc_pll_kp>
     <foc_sat_comp>0</foc_sat_comp>
-    <foc_sat_comp_mode>2</foc_sat_comp_mode>
+    <foc_sat_comp_mode>0</foc_sat_comp_mode>
     <foc_sensor_mode>0</foc_sensor_mode>
     <foc_short_ls_on_zero_duty>0</foc_short_ls_on_zero_duty>
     <foc_sl_erpm>3500</foc_sl_erpm>

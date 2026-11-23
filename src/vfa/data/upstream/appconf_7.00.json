@@ -759,7 +759,7 @@
   "app_pas_conf.sensor_type": {
    "c_define": "APPCONF_PAS_SENSOR_TYPE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc applications/appconf_default.h",
    "enum_names": [
     "Quadrature"
    ],
@@ -1048,7 +1048,7 @@
   "app_to_use": {
    "c_define": "APPCONF_APP_TO_USE",
    "default": 3,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc applications/appconf_default.h",
    "enum_names": [
     "No App",
     "PPM",
@@ -1084,7 +1084,7 @@
   "can_baud_rate": {
    "c_define": "APPCONF_CAN_BAUD_RATE",
    "default": 2,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc applications/appconf_default.h",
    "enum_names": [
     "CAN_BAUD_125K",
     "CAN_BAUD_250K",
@@ -1105,7 +1105,7 @@
   "can_mode": {
    "c_define": "APPCONF_CAN_MODE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc applications/appconf_default.h",
    "enum_names": [
     "VESC",
     "UAVCAN",
@@ -1271,8 +1271,8 @@
   },
   "imu_conf.filter": {
    "c_define": "APPCONF_IMU_FILTER",
-   "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default": 1,
+   "default_source": "bldc applications/appconf_default.h",
    "enum_names": [
     "IMU_FILTER_LOW",
     "IMU_FILTER_MEDIUM",
@@ -1378,7 +1378,7 @@
   "imu_conf.mode": {
    "c_define": "APPCONF_IMU_AHRS_MODE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc applications/appconf_default.h",
    "enum_names": [
     "AHRS_MODE_MADGWICK",
     "AHRS_MODE_MAHONY",
@@ -1445,7 +1445,7 @@
   "imu_conf.type": {
    "c_define": "APPCONF_IMU_TYPE",
    "default": 1,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc applications/appconf_default.h",
    "enum_names": [
     "IMU_TYPE_OFF",
     "IMU_TYPE_INTERNAL",
@@ -1473,7 +1473,7 @@
   "kill_sw_mode": {
    "c_define": "APPCONF_KILL_SW_MODE",
    "default": 0,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc applications/appconf_default.h",
    "enum_names": [
     "Disabled",
     "PPM Low",
@@ -1530,7 +1530,7 @@
   "shutdown_mode": {
    "c_define": "APPCONF_SHUTDOWN_MODE",
    "default": 7,
-   "default_source": "vesc_tool res/config XML (header value not numeric or absent)",
+   "default_source": "bldc applications/appconf_default.h",
    "enum_names": [
     "ALWAYS_OFF",
     "ALWAYS_ON",
